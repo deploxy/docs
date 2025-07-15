@@ -8,6 +8,9 @@
     "dark": "#0A0A0A"
   },
   "favicon": "/favicon.png",
+  "icons": {
+    "library": "lucide"
+  },
   "navigation": {
     "groups": [
       {
@@ -38,8 +41,8 @@
     "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
   "logo": {
-    "light": "/logo/logo_text_light.svg",
-    "dark": "/logo/logo_text_dark.svg",
+    "light": "/logo/deploxy_logo_text.png",
+    "dark": "/logo/deploxy_logo_text.png",
     "href": "https://www.deploxy.com"
   },
   "navbar": {

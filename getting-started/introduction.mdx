@@ -65,10 +65,10 @@ Here's how Deploxy's architecture ensures both security and performance:
 ```mermaid
 graph TD
     A[Your MCP Server Code] --> B(Deploxy CLI);
-    B -- Upload --> Deploxy_Cloud{Deploxy Cloud};
-    subgraph Deploxy_Cloud
+    B -- Upload --> Deploxy-Cloud{Deploxy Cloud};
+    subgraph Deploxy-Cloud
         D[Build & Deploy] --> E["Serverless Function 
-        (Your Logic)"];
+        (Your MCP Server Code)"];
         E --> F[Generate Proxy Code];
     end
     F -- Publish --> G[NPM Registry];
