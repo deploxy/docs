@@ -1,0 +1,96 @@
+---
+title: 'Troubleshooting'
+summary: 'Find solutions to common issues and problems encountered during deployment and runtime.'
+sequence: 10
+---
+
+# Troubleshooting Guide
+
+This guide covers common issues you might encounter when using Deploxy and provides step-by-step solutions.
+
+## Deployment Issues
+
+### Deployment Fails with "Invalid Token"
+
+**Symptom:** The `npx @deploxy/cli deploy` command fails with a `401 Unauthorized` error.
+
+**Solution:**
+
+1.  **Verify Your Token:** Ensure the `authToken` in your `.deploxy.json` is correct and has not expired.
+2.  **Regenerate Token:** Go to the [Deploxy Dashboard](https://deploxy.com/account/settings/tokens), generate a new token, and update your configuration file.
+3.  **Check for Typos:** Make sure there are no extra spaces or characters in the token string.
+
+### Build Process Fails
+
+**Symptom:** The deployment fails during the "Building project..." step.
+
+**Solution:**
+
+1.  **Run Build Locally:** The most common cause is a build error in your project. Run your build command locally to see the detailed error message. For example: `npm run build`.
+2.  **Check `tsconfig.json`:** Ensure your `tsconfig.json` has a valid `outDir` specified and that the `include` array correctly points to your source files.
+3.  **Check Dependencies:** Make sure all required `devDependencies` are listed in your `package.json`. The Deploxy build environment runs `npm install` before building.
+
+### NPM Publishing Fails
+
+**Symptom:** The deployment succeeds until the "Publishing to NPM..." step, which then fails.
+
+**Solution:**
+
+1.  **Check NPM Authentication:** Ensure your `.npmrc` file is present in the project root and contains a valid NPM token with publish permissions for your package scope.
+2.  **Check Package Version:** NPM requires that you publish a new version every time. Before deploying, increment the `version` number in your `package.json`. The CLI will also validate this for you.
+3.  **Check Package Name:** Ensure the `name` in your `package.json` is available on NPM and that you have permission to publish to that scope (e.g., `@your-org/my-package`).
+
+## Runtime Issues
+
+### MCP Server Not Responding or Timing Out
+
+**Symptom:** Your deployed MCP server is not responding to requests, or requests are timing out.
+
+**Solution:**
+
+1.  **Check Runtime Logs:** This is the most important step. Use the Deploxy Dashboard or the CLI to view the real-time logs of your function.
+    ```bash
+    npx @deploxy/cli logs <deployment-id> --follow
+    ```
+    Look for any startup errors or exceptions that occur when a request comes in.
+2.  **Check Environment Variables:** Ensure all required environment variables are correctly set in the `injectedEnv` section of your `.deploxy.json`. A missing database URL or API key is a common cause of startup failure.
+3.  **Increase Timeout:** If your tool performs a long-running task, it might be exceeding the default serverless function timeout. You can increase this in your project settings (feature coming soon).
+
+### "Invalid or Missing API Key"
+
+**Symptom:** Users report getting an "Invalid API Key" error, even when they provide one.
+
+**Solution:**
+
+1.  **Verify Your Server Logic:** Double-check the authentication logic in your MCP server. Is it correctly retrieving the API key from the `request.params.arguments`?
+2.  **Check Database Connection:** If you validate keys against a database, ensure your server can connect to it. Check the logs for any database connection errors.
+3.  **Confirm User Input:** Ensure the user is passing the API key correctly in their MCP client configuration.
+
+## Configuration Issues
+
+### Environment Variables are `undefined`
+
+**Symptom:** Your deployed server crashes because `process.env.MY_VARIABLE` is `undefined`.
+
+**Solution:**
+
+1.  **Check `.deploxy.json`:** Verify that the variable is defined in the `injectedEnv` section.
+2.  **Check for Dynamic Variables:** If you are using dynamic variables (e.g., `"${process.env.MY_LOCAL_VAR}"`), ensure that the environment variable `MY_LOCAL_VAR` is set in the environment where you are running the `npx @deploxy/cli deploy` command. It will not be available if it's only in a `.env` file that isn't loaded by your shell.
+
+<Callout type="info" title="Using .env files">
+To load variables from a `.env` file before deploying, you can use a tool like `dotenv-cli`:
+`npx dotenv -e .env.production -- npx @deploxy/cli deploy`
+</Callout>
+
+## Getting Help
+
+If you're still stuck, we're here to help.
+
+-   **Community Support:** Join our [Discord Community](https://discord.gg/deploxy) for help from the community and the Deploxy team.
+-   **GitHub Issues:** If you believe you've found a bug in the CLI or platform, please open an issue on our [GitHub repository](https://github.com/deploxy/cli/issues).
+
+When asking for help, please provide as much information as possible, including:
+- The command you ran.
+- The full output from the CLI (with any secrets redacted).
+- Your (redacted) `.deploxy.json` and `package.json` files.
+- Relevant snippets from your server code.

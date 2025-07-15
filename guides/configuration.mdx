@@ -1,0 +1,110 @@
+---
+title: 'Advanced Configuration'
+summary: 'A deep dive into the .deploxy.json file and advanced deployment settings.'
+sequence: 8
+---
+
+# Advanced Configuration
+
+This guide covers the advanced configuration options available in your `.deploxy.json` file, allowing you to fine-tune your deployments.
+
+## The `.deploxy.json` File
+
+This file is the heart of your Deploxy project configuration. It tells the CLI how to build, deploy, and manage your MCP server.
+
+### Basic Structure
+
+Here is a comprehensive example of the `.deploxy.json` file with commonly used options:
+
+```json
+{
+  "authToken": "your-auth-token-here",
+  "defaultDeployRegion": "ap-northeast-2",
+  "stdioArgsIndex": "--args",
+  "mcpPath": "/mcp",
+  "injectedEnv": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "${process.env.DATABASE_URL}"
+  },
+  "packageType": "js"
+}
+```
+
+### Key Properties
+
+-   **`authToken`** (required): Your Personal Access Token from the Deploxy dashboard. It's recommended to use an environment variable for this, e.g., `"${process.env.DEPLOXY_TOKEN}"`.
+-   **`defaultDeployRegion`** (required): The primary AWS region where your serverless function will be deployed. Choose the region closest to your users for the best performance.
+-   **`stdioArgsIndex`** (optional): Specifies the command-line flag that separates your script's arguments from the arguments intended for the MCP server. Defaults to `"--args"`.
+-   **`mcpPath`** (optional): The URL path for your MCP endpoint. Defaults to `"/mcp"`. The final URL will look like `https://<deployment-id>.deploxy.com/mcp`.
+-   **`injectedEnv`** (optional): A key-value map of environment variables that will be securely injected into your serverless function's runtime. This is the recommended way to handle secrets.
+-   **`packageType`** (required): The type of your package. Currently, only `"js"` for JavaScript/TypeScript projects is supported. Python support is coming soon.
+
+## Environment Variables
+
+The `injectedEnv` block is a powerful feature for managing your application's configuration securely.
+
+### Static vs. Dynamic Variables
+
+You can define both static and dynamic environment variables.
+
+```json
+{
+  "injectedEnv": {
+    "LOG_LEVEL": "info", // Static value
+    "API_SECRET": "${process.env.MY_API_SECRET}" // Dynamic value from your local/CI environment
+  }
+}
+```
+
+<Callout type="warning" title="Security Note">
+When using dynamic variables like `${process.env.VAR_NAME}`, the value is resolved by the Deploxy CLI from the environment where the `deploy` command is run. These values are then securely transmitted and stored in your function's environment, never in your repository.
+</Callout>
+
+## Regional Configuration
+
+While `defaultDeployRegion` sets the primary location, you can deploy to multiple regions for higher availability and lower latency.
+
+### Multi-Region Deployments
+
+To deploy to multiple regions, you can maintain separate configuration files for each environment or use the CLI's `--region` flag.
+
+**Example using a region-specific config file (`.deploxy.us-west-2.json`):**
+```json
+{
+  "extends": "./.deploxy.json", // Inherits from the base config
+  "defaultDeployRegion": "us-west-2"
+}
+```
+
+Then deploy using:
+```bash
+npx @deploxy/cli deploy --config .deploxy.us-west-2.json
+```
+
+### Available Regions
+
+Deploxy supports a wide range of AWS regions. Some popular choices include:
+- `us-east-1` (N. Virginia)
+- `us-west-2` (Oregon)
+- `eu-west-1` (Ireland)
+- `ap-northeast-1` (Tokyo)
+- `ap-northeast-2` (Seoul)
+- `ap-southeast-1` (Singapore)
+
+## Advanced Build Options (Future)
+
+While the current version of Deploxy automatically handles most build configurations, future versions will allow for more granular control over the build process directly within `.deploxy.json`.
+
+**Example of potential future configuration:**
+```json
+{
+  "buildOptions": {
+    "nodeVersion": "20",
+    "installCommand": "pnpm install --frozen-lockfile",
+    "buildCommand": "pnpm build",
+    "outputDirectory": "build"
+  }
+}
+```
+
+For now, ensure your `package.json` `scripts` and `tsconfig.json` are correctly configured, as the CLI uses them as the source of truth for the build process.

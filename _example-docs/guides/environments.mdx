@@ -1,0 +1,170 @@
+---
+title: 'Managing Environments'
+summary: 'Learn how to manage different deployment environments like development, staging, and production.'
+sequence: 5
+---
+
+# Managing Environments
+
+A robust development workflow often involves multiple environments to test changes before they reach your users. Deploxy supports this by allowing you to manage distinct configurations for environments like development, staging, and production.
+
+## Why Use Different Environments?
+
+-   **Isolation**: Test new features without affecting your production users.
+-   **Configuration**: Use different databases, API keys, and settings for each stage.
+-   **Safety**: Catch bugs and issues in a staging environment before they impact your live service.
+
+## Strategy: Multiple Configuration Files
+
+The most straightforward way to manage environments is by using separate `.deploxy.json` files for each one.
+
+### Example File Structure
+
+```
+my-mcp-server/
+├── .deploxy.dev.json
+├── .deploxy.staging.json
+├── .deploxy.prod.json
+└── package.json
+```
+
+### Example Configurations
+
+**`.deploxy.dev.json`**
+This file might point to a local or development database and use test API keys.
+
+```json
+{
+  "authToken": "${process.env.DEPLOXY_TOKEN}",
+  "defaultDeployRegion": "us-east-1",
+  "injectedEnv": {
+    "NODE_ENV": "development",
+    "DATABASE_URL": "${process.env.DEV_DATABASE_URL}"
+  },
+  "packageType": "js"
+}
+```
+
+**`.deploxy.staging.json`**
+This file would use staging-specific resources, which might be a clone of your production setup.
+
+```json
+{
+  "authToken": "${process.env.DEPLOXY_TOKEN}",
+  "defaultDeployRegion": "us-west-2",
+  "injectedEnv": {
+    "NODE_ENV": "staging",
+    "DATABASE_URL": "${process.env.STAGING_DATABASE_URL}"
+  },
+  "packageType": "js"
+}
+```
+
+**`.deploxy.prod.json`**
+This is your live configuration, using production-ready credentials and settings.
+
+```json
+{
+  "authToken": "${process.env.DEPLOXY_TOKEN}",
+  "defaultDeployRegion": "ap-northeast-2",
+  "injectedEnv": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "${process.env.PROD_DATABASE_URL}"
+  },
+  "packageType": "js"
+}
+```
+
+### Deploying to a Specific Environment
+
+To deploy using a specific configuration file, use the `--config` flag with the Deploxy CLI.
+
+```bash
+# Deploy to development
+npx @deploxy/cli deploy --config .deploxy.dev.json
+
+# Deploy to staging
+npx @deploxy/cli deploy --config .deploxy.staging.json
+
+# Deploy to production
+npx @deploxy/cli deploy --config .deploxy.prod.json
+```
+
+## Using Environment Variables for Secrets
+
+As shown in the examples above, it is a critical security practice to manage secrets (like database URLs and API keys) using environment variables, rather than hardcoding them into your `.deploxy.json` files.
+
+You can manage these variables using `.env` files (e.g., `.env.development`, `.env.production`) which should be added to your `.gitignore`, or by setting them in your CI/CD system's secret management tool.
+
+## CI/CD Integration Example
+
+Here’s how you can integrate this multi-environment strategy into a GitHub Actions workflow.
+
+```yaml
+name: Deploy MCP Server
+
+on:
+  push:
+    branches:
+      - main    # Deploy to production
+      - staging # Deploy to staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/staging'
+        run: npx @deploxy/cli deploy --config .deploxy.staging.json
+        env:
+          DEPLOXY_TOKEN: ${{ secrets.DEPLOXY_STAGING_TOKEN }}
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/main'
+        run: npx @deploxy/cli deploy --config .deploxy.prod.json
+        env:
+          DEPLOXY_TOKEN: ${{ secrets.DEPLOXY_PROD_TOKEN }}
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+```
+
+<Callout type="info" title="GitHub Secrets">
+In this example, `secrets.DEPLOXY_PROD_TOKEN` and other secrets are configured in the GitHub repository's "Settings > Secrets and variables > Actions" section.
+</Callout>
+
+## Environment-Specific Logic in Your Code
+
+Your MCP server can detect the current environment from the `NODE_ENV` variable you injected and behave accordingly.
+
+```typescript
+// src/config.ts
+
+const environment = process.env.NODE_ENV || 'development';
+
+let config;
+
+if (environment === 'production') {
+  config = {
+    logLevel: 'warn',
+    enableAnalytics: true,
+  };
+} else {
+  config = {
+    logLevel: 'debug',
+    enableAnalytics: false,
+  };
+}
+
+export default config;
+```
+This allows you to enable verbose logging in development or turn on production-only features without changing your core application logic.

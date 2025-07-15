@@ -1,0 +1,113 @@
+---
+title: 'Your First Deployment'
+summary: 'A step-by-step guide to deploying your first MCP server with Deploxy'
+sequence: 3
+---
+
+# Your First Deployment
+
+This guide walks you through deploying an existing NPM package to Deploxy. We'll turn your public package into a secure, private MCP server with a lightweight proxy that users can install.
+
+## Deployment Steps
+
+<Steps>
+
+### Step 1: Clone the Quick Start Repository
+
+```bash
+git clone https://github.com/deploxy/quick-start.git
+cd quick-start
+```
+
+### Step 2: Configure NPM Publishing
+
+Before you begin, you must have a `.npmrc` file in your project root that is configured for publishing packages to NPM.
+
+```bash
+# .npmrc
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+```
+
+<Warning>
+  Your NPM token should never be committed to version control. It is best practice to load it from an environment variable like `NPM_TOKEN`.
+</Warning>
+
+### Step 3: Prepare Your Project
+
+First, ensure your project is ready to be published as a standard NPM package.
+
+1.  **Configure `package.json`**: Make sure your `package.json` has the required `name`, `version`, `bin`, and `files` properties set correctly.
+2.  **Build Your Project**: Install dependencies and run your build script.
+    ```bash
+    npm install
+    npm run build
+    ```
+
+### Step 4: Check your npm package (Optional)
+
+To understand the problem Deploxy solves, let's first publish the package the traditional way.
+
+```bash
+npm publish --access public
+```
+
+Now, go to your package's page on NPM (`https://www.npmjs.com/package/YOUR_PACKAGE_NAME`) and click on the "Code" tab. You will see that all your built code from the `dist` directory is publicly visible.
+
+<Info>
+  This step is for this quick start demonstration only. In a real production workflow with Deploxy, you will **skip this step entirely**. The `deploxy deploy` command will handle publishing for you, while keeping your source code private. You can unpublish this test package by running `npm unpublish YOUR_PACKAGE_NAME --force`.
+</Info>
+
+### Step 5: Create and Configure `.deploxy.json`
+
+1.  **Create the file**: You can create the `.deploxy.json` file by running `npx @deploxy/cli init` or by copying it from the [Deploxy Dashboard](https://www.deploxy.com/dashboard/new).
+2.  **Add your Auth Token**: Open the file and add your `authToken`. If you don't have one, you can get it from the [Tokens page](https://www.deploxy.com/account/settings/tokens).
+
+    ```json .deploxy.json
+    {
+      "authToken": "your-auth-token-here",
+      "defaultDeployRegion": "ap-northeast-2",
+      "stdioArgsIndex": "--args",
+      "mcpPath": "/mcp",
+      "injectedEnv": {},
+      "packageType": "js"
+    }
+    ```
+
+### Step 6: Deploy with Deploxy
+
+Now, instead of `npm publish`, run the `deploy` command.
+
+```bash
+npx @deploxy/cli deploy
+```
+
+</Steps>
+
+<Check>
+You can monitor the deployment progress on your project's dashboard. That's it! Your package is now deployed with Deploxy.
+</Check>
+
+---
+
+## How It Works: The Deploxy Magic
+
+When you deploy with Deploxy, you're not just publishing a package; you're creating a secure, private backend for your MCP server.
+
+The code that end-users download and run via `npx` is a lightweight **proxy client**. This proxy client takes user requests (like a ToolCall) and streams them to your actual MCP server, which is running securely in the serverless cloud. This architecture allows you to focus on your core business logic without worrying about exposing sensitive information. You'll understand immediately once you inspect your published package on NPM after deployment.
+
+### Understanding the `.deploxy.json` properties
+
+-   **`authToken`**: This is the token required to authenticate and deploy your package to Deploxy.
+
+-   **`defaultDeployRegion`**: This is the default AWS region where your MCP server will run if the end-user does not specify a particular region. To give your end-users the fastest experience, they can specify a region using the `--region` flag when they run your package (`npx -y your-pkg --region us-east-1`). If the flag is omitted, this default region is used.
+    > With the Deploxy Pro plan, the `--region` parameter is not needed. Requests are automatically routed to the nearest region for the end-user.
+
+-   **`stdioArgsIndex`**: This option specifies the arguments that are passed directly to your MCP server. For example, when an end-user runs `npx -y your-pkg --args user-api-key`, your server can access `user-api-key` from `process.argv`.
+
+-   **`injectedEnv`**: This is an object of environment variables that are accessible only within your MCP server (e.g., `process.env.DATABASE_URL`). These are completely hidden from the end-user because they only interact with the proxy client, not your secure server code.
+
+-   **`mcpPath`** and **`packageType`**: You generally don't need to change these.
+
+<Warning>
+  The `.deploxy.json` file contains your sensitive `authToken`. **Never commit this file to a public repository.** Ensure it is listed in your `.gitignore` file.
+</Warning>

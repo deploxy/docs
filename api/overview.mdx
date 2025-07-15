@@ -1,0 +1,93 @@
+---
+title: 'API Overview'
+summary: 'An overview of the different ways to interact with the Deploxy platform.'
+sequence: 6
+---
+
+# API Overview
+
+<Callout type="info" title="📚 API Documentation">
+  Deploxy provides multiple ways to interact with your deployed MCP servers and the platform itself: through the Deploxy CLI and the user-facing MCP Proxy API.
+</Callout>
+
+## API Types
+
+Deploxy offers two primary interfaces for interaction:
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+  <FeatureCard 
+    icon="Terminal" 
+    title="Deploxy CLI" 
+    description="The primary tool for deploying and managing your projects."
+  >
+    Perfect for local development and integration into CI/CD pipelines.
+  </FeatureCard>
+  
+  <FeatureCard 
+    icon="Code" 
+    title="MCP Proxy API" 
+    description="The deployed serverless endpoint that your users' clients interact with."
+  >
+    This is the public-facing interface of your private MCP server logic.
+  </FeatureCard>
+</div>
+
+## Authentication
+
+Authentication is handled differently for each interface.
+
+### Deploxy CLI Authentication
+
+The CLI requires a **Personal Access Token** to authenticate with the Deploxy platform for deployments and management tasks.
+
+-   **Source**: Generated from the [Deploxy Dashboard](https://deploxy.com/dashboard/tokens).
+-   **Usage**: Stored in the `authToken` field of your `.deploxy.json` file.
+
+<Callout type="warning" title="🔑 Keep Your Token Secure">
+  Your Deploxy auth token grants access to manage your projects. Do not commit it directly to version control. Use environment variables for better security.
+</Callout>
+
+### MCP Proxy API Authentication
+
+Securing your deployed MCP server is your responsibility. You implement the authentication logic directly in your server code. This provides flexibility and control.
+
+A common pattern is to require an API key passed in the tool call arguments.
+
+<CodeBlock title="Server-Side API Key Validation" language="typescript">
+```typescript
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const apiKey = request.params.arguments.apiKey;
+
+  if (!isValid(apiKey)) {
+    throw new Error('Authentication failed');
+  }
+  
+  // ... proceed with tool logic
+});
+```
+</CodeBlock>
+
+## MCP Proxy URL
+
+When you deploy a project, Deploxy generates a unique, secure URL for your serverless function. The `@deploxy/proxy` package uses this URL to route requests from the end-user's client to your private server.
+
+<CodeBlock title="MCP Proxy URL Structure" language="bash">
+# The URL is automatically configured in the published proxy package.
+https://{deployment-id}.deploxy.com{mcp-path}
+
+# Example:
+https://abc123xyz.deploxy.com/mcp
+</CodeBlock>
+
+## Next Steps
+
+Ready to dive deeper? Explore the detailed CLI reference.
+
+<QuickLinks>
+  <QuickLink
+    to="/docs/api/cli-commands"
+    title="CLI Commands"
+    description="A complete reference for all Deploxy CLI commands and their options."
+    icon="Terminal"
+  />
+</QuickLinks>
