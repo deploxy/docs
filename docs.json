@@ -7,22 +7,16 @@
     "light": "#FAFAFA",
     "dark": "#0A0A0A"
   },
-  "favicon": "/favicon.ico",
+  "favicon": "/favicon.png",
   "navigation": {
     "groups": [
       {
         "group": "Introduction",
-        "pages": [
-          "index"
-        ]
+        "pages": ["index"]
       },
       {
         "group": "Getting Started",
-        "pages": [
-          "getting-started/introduction",
-          "getting-started/installation",
-          "getting-started/first-deployment"
-        ]
+        "pages": ["getting-started/introduction", "getting-started/installation", "getting-started/first-deployment"]
       },
       {
         "group": "Guides",
@@ -36,10 +30,7 @@
       },
       {
         "group": "API",
-        "pages": [
-          "api/overview",
-          "api/cli-commands"
-        ]
+        "pages": ["api/overview", "api/cli-commands"]
       }
     ]
   },
