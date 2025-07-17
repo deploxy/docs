@@ -10,7 +10,7 @@ This guide covers common issues you might encounter when using Deploxy and provi
 
 ## Deployment Issues
 
-### Deployment Fails with "Invalid Token"
+### Deployment Fails with "Unauthorized"
 
 **Symptom:** The `npx @deploxy/cli deploy` command fails with a `401 Unauthorized` error.
 
@@ -28,7 +28,26 @@ This guide covers common issues you might encounter when using Deploxy and provi
 
 1.  **Run Build Locally:** The most common cause is a build error in your project. Run your build command locally to see the detailed error message. For example: `npm run build`.
 2.  **Check `tsconfig.json`:** Ensure your `tsconfig.json` has a valid `outDir` specified and that the `include` array correctly points to your source files.
-3.  **Check Dependencies:** Make sure all required `devDependencies` are listed in your `package.json`. The Deploxy build environment runs `npm install` before building.
+3.  **Check Dependencies:** By default, the Deploxy build environment installs dependencies using a production flag (e.g., `npm install --production`), meaning `devDependencies` are not installed. If your build script requires a package from this section (like `typescript`), it will fail. Ensure any packages needed for the build are listed in `dependencies`.
+
+### Deployment Package Too Large
+
+**Symptom:** The deployment fails during the final packaging or upload step, sometimes with a message related to size limits.
+
+**Solution:**
+
+Serverless platforms have a limit on the size of the deployment package. The total unzipped size of your project, including `node_modules`, must be **under 250MB**.
+
+1.  **Analyze Dependencies:** Use a tool like `npm-why` or `yarn why` to understand why a specific package is included. You can also use `du -sh node_modules/* | sort -rh` (on macOS/Linux) to list the largest directories.
+2.  **Check `devDependencies`:** Ensure that build-time tools (like `typescript`, `@types/*`, `eslint`) are in `devDependencies` and not `dependencies`. The build process prunes `devDependencies` before packaging your server.
+3.  **Use a Production Install Command:** By default, Deploxy runs `npm install`. You can override this to ensure only production dependencies are installed. In your `.deploxy.json`, specify the `installCommand`.
+    ```json .deploxy.json
+    {
+      "installCommand": "npm install --production"
+    }
+    ```
+    For other package managers, you can use equivalent commands like `yarn install --production` or `pnpm install --prod`.
+4.  **Remove Unused Packages:** Carefully review your `dependencies` in `package.json` and remove any that are not essential for your server to run in production.
 
 ### NPM Publishing Fails
 
@@ -48,11 +67,11 @@ This guide covers common issues you might encounter when using Deploxy and provi
 
 **Solution:**
 
-1.  **Check Runtime Logs:** This is the most important step. Use the Deploxy Dashboard or the CLI to view the real-time logs of your function.
-    ```bash
-    npx @deploxy/cli logs <deployment-id> --follow
-    ```
-    Look for any startup errors or exceptions that occur when a request comes in.
+1.  **Check Runtime Logs:** This is the most important step. The easiest way to see what's happening inside your server is to check the logs in real-time from the Deploxy Dashboard.
+    1.  Go to your project's page on the [Deploxy Dashboard](https://deploxy.com/dashboard).
+    2.  Select your latest deployment and navigate to the **Logs** tab.
+    3.  Look for any startup errors or exceptions that occur when a request comes in.
+
 2.  **Check Environment Variables:** Ensure all required environment variables are correctly set in the `injectedEnv` section of your `.deploxy.json`. A missing database URL or API key is a common cause of startup failure.
 3.  **Increase Timeout:** If your tool performs a long-running task, it might be exceeding the default serverless function timeout. You can increase this in your project settings (feature coming soon).
 

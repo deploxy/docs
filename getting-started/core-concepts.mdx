@@ -1,0 +1,61 @@
+---
+title: 'Core Concepts'
+summary: 'Understand the fundamental concepts that power Deploxy.'
+sequence: 1.5
+---
+
+# Core Concepts
+
+This document explains the key concepts behind Deploxy, providing a solid foundation for understanding how the platform works.
+
+## The Core Problem: Private MCP Servers
+
+Standard NPM packages are public, meaning anyone can view their source code. This is a problem for MCP (Model Context Protocol) servers that contain proprietary business logic, connect to private databases, or use secret API keys.
+
+Deploxy solves this by allowing you to deploy your MCP server to a secure, private, serverless environment while distributing a lightweight, public-facing proxy package to your users.
+
+## 1. The Private MCP Server
+
+Your MCP server is the core of your application. It contains all your valuable logic:
+-   Proprietary algorithms and business logic.
+-   Connections to your private databases.
+-   Secure handling of API keys and other secrets.
+
+With Deploxy, you write this code as a standard Node.js application. During deployment, this code is uploaded directly to a secure serverless environment and is **never** published to a public registry.
+
+## 2. The Lightweight Proxy Package
+
+When you deploy with `npx @deploxy/cli deploy`, Deploxy automatically generates a new, minimal NPM package. This is the **proxy package**.
+
+-   **What it is:** A small, lightweight client that knows how to connect to your private MCP server.
+-   **What it contains:** Only the necessary logic to forward a user's request (e.g., a tool call) to your secure server and stream the response back.
+-   **What it does NOT contain:** Any of your sensitive source code, database credentials, or secret keys.
+
+This proxy package is what you publish to NPM. Your end-users install this package, giving them access to your MCP server's functionality without ever seeing the underlying implementation.
+
+## 3. The Serverless Architecture
+
+Your private MCP server code runs on highly scalable and resilient serverless infrastructure (like AWS Lambda).
+
+-   **Auto-Scaling:** The platform automatically handles traffic spikes, scaling your server up or down as needed. You don't need to manage servers.
+-   **High Availability:** Serverless functions are inherently resilient, providing a stable experience for your users.
+-   **Pay-per-use:** You only pay for the compute time you consume, making it a cost-effective solution.
+
+## 4. Configuration via `.deploxy.json`
+
+The `.deploxy.json` file is the control center for your project. It tells the Deploxy CLI everything it needs to know to deploy and manage your server.
+
+Key settings include:
+-   `authToken`: Your secret token for authenticating with the Deploxy platform.
+-   `injectedEnv`: A secure map of environment variables (like `DATABASE_URL` or `API_KEY`) that are made available to your private server at runtime.
+-   `defaultDeployRegion`: The geographical region where your server will be deployed, allowing you to place it closer to your users for lower latency.
+
+## 5. The CLI-Driven Workflow
+
+Deploxy is designed to be integrated directly into your development and CI/CD workflow via the `@deploxy/cli`.
+
+-   `npx @deploxy/cli init`: Initializes a new project with a `.deploxy.json` file.
+-   `npx @deploxy/cli deploy`: The core command that bundles your code, uploads it securely, deploys it to the serverless environment, and publishes the proxy package to NPM.
+-   `npx @deploxy/cli logs`: Allows you to view the real-time logs of your running MCP server for debugging and monitoring.
+
+This workflow allows you to automate deployments and manage your application's lifecycle directly from your terminal or CI/CD pipeline.

@@ -1,170 +1,146 @@
 ---
-title: 'Managing Environments'
-summary: 'Learn how to manage different deployment environments like development, staging, and production.'
+title: 'Secure Environment Management'
+summary: 'Learn how to securely provide configuration to your private MCP server using injected environment variables.'
 sequence: 5
 ---
 
-# Managing Environments
+# Secure Environment Management
 
-A robust development workflow often involves multiple environments to test changes before they reach your users. Deploxy supports this by allowing you to manage distinct configurations for environments like development, staging, and production.
+A key feature of Deploxy's architecture is the strict separation between your private, server-side MCP server and the lightweight proxy client that end-users install. Environment management is designed around this principle, ensuring that your secrets and configuration always remain secure on the server.
 
-## Why Use Different Environments?
+The primary tool for this is the `injectedEnv` property in your `.deploxy.json` file.
 
--   **Isolation**: Test new features without affecting your production users.
--   **Configuration**: Use different databases, API keys, and settings for each stage.
--   **Safety**: Catch bugs and issues in a staging environment before they impact your live service.
+## Understanding `injectedEnv`
 
-## Strategy: Multiple Configuration Files
+The `injectedEnv` property defines a set of environment variables that are securely injected *only* into the runtime of your private serverless function.
 
-The most straightforward way to manage environments is by using separate `.deploxy.json` files for each one.
+<Callout type="warning" title="Server-Side Only">
+These variables are **never** included in the client-side proxy package published to NPM and are **never** exposed to the end-user. They exist exclusively within the secure Deploxy cloud environment where your MCP server code executes.
+</Callout>
 
-### Example File Structure
+This allows you to safely manage sensitive data like:
+- Database connection strings
+- Private API keys for other services (e.g., Stripe, OpenAI)
+- Environment-specific settings (e.g., `development` vs. `production`)
 
-```
-my-mcp-server/
-├── .deploxy.dev.json
-├── .deploxy.staging.json
-├── .deploxy.prod.json
-└── package.json
-```
+### How It Works: Static vs. Dynamic Variables
 
-### Example Configurations
+Your `.deploxy.json` can define two types of injected variables:
 
-**`.deploxy.dev.json`**
-This file might point to a local or development database and use test API keys.
+1.  **Static Variables**: The value is hardcoded. Useful for non-sensitive, fixed values like a log level.
+2.  **Dynamic Variables**: The value is read from the environment where you run the `npx @deploxy/cli deploy` command. This is the **required method for all secrets**.
 
-```json
-{
-  "authToken": "${process.env.DEPLOXY_TOKEN}",
-  "defaultDeployRegion": "us-east-1",
-  "injectedEnv": {
-    "NODE_ENV": "development",
-    "DATABASE_URL": "${process.env.DEV_DATABASE_URL}"
-  },
-  "packageType": "js"
-}
-```
+Here’s a typical `.deploxy.json` configuration:
 
-**`.deploxy.staging.json`**
-This file would use staging-specific resources, which might be a clone of your production setup.
-
-```json
-{
-  "authToken": "${process.env.DEPLOXY_TOKEN}",
-  "defaultDeployRegion": "us-west-2",
-  "injectedEnv": {
-    "NODE_ENV": "staging",
-    "DATABASE_URL": "${process.env.STAGING_DATABASE_URL}"
-  },
-  "packageType": "js"
-}
-```
-
-**`.deploxy.prod.json`**
-This is your live configuration, using production-ready credentials and settings.
-
-```json
+```json .deploxy.json
 {
   "authToken": "${process.env.DEPLOXY_TOKEN}",
   "defaultDeployRegion": "ap-northeast-2",
+  "mcpPath": "/mcp",
+  "packageType": "js",
   "injectedEnv": {
-    "NODE_ENV": "production",
-    "DATABASE_URL": "${process.env.PROD_DATABASE_URL}"
-  },
-  "packageType": "js"
+    "NODE_ENV": "${process.env.NODE_ENV}",
+    "DATABASE_URL": "${process.env.DATABASE_URL}",
+    "STRIPE_API_KEY": "${process.env.STRIPE_API_KEY}"
+  }
 }
 ```
 
-### Deploying to a Specific Environment
+When you run `npx @deploxy/cli deploy`, the CLI resolves the values of `NODE_ENV`, `DATABASE_URL`, and `STRIPE_API_KEY` from your local shell or CI/CD environment. It then securely transmits these values to your serverless function's configuration.
 
-To deploy using a specific configuration file, use the `--config` flag with the Deploxy CLI.
+### Value Types: Strings Only
 
-```bash
-# Deploy to development
-npx @deploxy/cli deploy --config .deploxy.dev.json
+It is crucial to remember that all environment variables, and therefore all values within the `injectedEnv` object, must be **strings**. This is a standard convention for environment variables across all platforms.
 
-# Deploy to staging
-npx @deploxy/cli deploy --config .deploxy.staging.json
+Providing non-string values like numbers, booleans, or nested objects will result in a deployment error.
 
-# Deploy to production
-npx @deploxy/cli deploy --config .deploxy.prod.json
+<CodeBlock title=".deploxy.json - Correct ✅" language="json">
+```json
+{
+  "injectedEnv": {
+    "ENABLE_FEATURE_X": "true",
+    "API_TIMEOUT_MS": "30000",
+    "CONFIG_JSON": "{\"key\":\"value\",\"nested\":true}"
+  }
+}
 ```
+</CodeBlock>
 
-## Using Environment Variables for Secrets
-
-As shown in the examples above, it is a critical security practice to manage secrets (like database URLs and API keys) using environment variables, rather than hardcoding them into your `.deploxy.json` files.
-
-You can manage these variables using `.env` files (e.g., `.env.development`, `.env.production`) which should be added to your `.gitignore`, or by setting them in your CI/CD system's secret management tool.
-
-## CI/CD Integration Example
-
-Here’s how you can integrate this multi-environment strategy into a GitHub Actions workflow.
-
-```yaml
-name: Deploy MCP Server
-
-on:
-  push:
-    branches:
-      - main    # Deploy to production
-      - staging # Deploy to staging
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Deploy to Staging
-        if: github.ref == 'refs/heads/staging'
-        run: npx @deploxy/cli deploy --config .deploxy.staging.json
-        env:
-          DEPLOXY_TOKEN: ${{ secrets.DEPLOXY_STAGING_TOKEN }}
-          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-
-      - name: Deploy to Production
-        if: github.ref == 'refs/heads/main'
-        run: npx @deploxy/cli deploy --config .deploxy.prod.json
-        env:
-          DEPLOXY_TOKEN: ${{ secrets.DEPLOXY_PROD_TOKEN }}
-          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+<CodeBlock title=".deploxy.json - Incorrect ❌" language="json">
+```json
+{
+  "injectedEnv": {
+    "ENABLE_FEATURE_X": true,
+    "API_TIMEOUT_MS": 30000,
+    "CONFIG_JSON": {
+      "key": "value",
+      "nested": true
+    }
+  }
+}
 ```
+</CodeBlock>
 
-<Callout type="info" title="GitHub Secrets">
-In this example, `secrets.DEPLOXY_PROD_TOKEN` and other secrets are configured in the GitHub repository's "Settings > Secrets and variables > Actions" section.
-</Callout>
-
-## Environment-Specific Logic in Your Code
-
-Your MCP server can detect the current environment from the `NODE_ENV` variable you injected and behave accordingly.
+<Callout type="info" title="Handling Data Types in Your Code">
+In your server-side code, you will need to parse these string values back into their intended types.
 
 ```typescript
-// src/config.ts
-
-const environment = process.env.NODE_ENV || 'development';
-
-let config;
-
-if (environment === 'production') {
-  config = {
-    logLevel: 'warn',
-    enableAnalytics: true,
-  };
-} else {
-  config = {
-    logLevel: 'debug',
-    enableAnalytics: false,
-  };
-}
-
-export default config;
+const featureXEnabled = process.env.ENABLE_FEATURE_X === 'true';
+const timeout = parseInt(process.env.API_TIMEOUT_MS, 10);
+const config = JSON.parse(process.env.CONFIG_JSON);
 ```
-This allows you to enable verbose logging in development or turn on production-only features without changing your core application logic.
+</Callout>
+
+## Practical Workflow with `.env` Files
+
+The most effective way to manage dynamic variables for different environments is with `.env` files.
+
+### 1. Create Environment-Specific `.env` Files
+
+Create separate `.env` files for each environment. **Crucially, add `.env*` to your `.gitignore` file to prevent committing secrets to version control.**
+
+**.env.development**
+```
+NODE_ENV=development
+DATABASE_URL=postgres://user:pass@dev-db.example.com/mydb
+STRIPE_API_KEY=sk_test_...
+```
+
+**.env.production**
+```
+NODE_ENV=production
+DATABASE_URL=postgres://user:pass@prod-db.example.com/mydb
+STRIPE_API_KEY=sk_live_...
+```
+
+### 2. Deploy Using a Specific Environment
+
+Use a tool like `dotenv-cli` to load these variables before deploying. This keeps your deployment command clean and your configuration secure.
+
+```bash
+# Deploy using development settings
+npx dotenv -e .env.development -- npx @deploxy/cli deploy
+
+# Deploy using production settings
+npx dotenv -e .env.production -- npx @deploxy/cli deploy
+```
+
+## Accessing Variables in Your Server Code
+
+Inside your MCP server's code, these injected variables are available via `process.env`.
+
+```typescript
+// This code runs securely on the Deploxy server, not on the client.
+import { connectToDatabase } from './database';
+import Stripe from 'stripe';
+
+// Initialize services with securely injected environment variables
+const db = connectToDatabase(process.env.DATABASE_URL);
+const stripe = new Stripe(process.env.STRIPE_API_KEY);
+
+export async function handleToolCall(request) {
+  // Your logic here can now securely access the database and Stripe
+}
+```
+
+This powerful pattern allows you to build robust, secure applications, confident that your sensitive configuration is handled correctly and never exposed.

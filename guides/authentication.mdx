@@ -129,6 +129,51 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 ```
 </CodeBlock>
 
+### Handling Errors Gracefully
+
+When an error occurs in your server (like an invalid API key, failed database connection, or insufficient credits), it's crucial to communicate it back to the client in a structured way. Simply throwing a generic `Error` is not enough.
+
+The MCP SDK expects errors to be returned in a specific JSON format. You should catch any potential errors and re-format them accordingly.
+
+<CodeBlock title="src/index.ts - Proper Error Handling" language="typescript">
+```typescript
+import { MCPError, MCPErrorType } from '@deploxy/mcp-server'; // Assuming MCPError is available
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  try {
+    const apiKey = request.params.arguments.apiKey as string;
+
+    // 1. Validate API Key
+    const isValid = await isValidApiKey(apiKey);
+    if (!isValid) {
+      // Throw a structured error
+      throw new MCPError(MCPErrorType.PERMISSION_DENIED, 'Invalid or missing API key.');
+    }
+
+    // 2. Deduct Credits
+    await deductCredits(apiKey); // This function might also throw an MCPError
+
+    // 3. Process the actual tool logic
+    return await processTool(request.params);
+
+  } catch (error) {
+    // If the error is already in the correct format, re-throw it
+    if (error instanceof MCPError) {
+      return error.toJSON();
+    }
+
+    // For unexpected errors, wrap them in a generic server error
+    console.error('Unexpected server error:', error);
+    return new MCPError(MCPErrorType.INTERNAL_SERVER_ERROR, 'An unexpected error occurred.').toJSON();
+  }
+});
+```
+</CodeBlock>
+
+<Callout type="info" title="MCPError Types">
+The `MCPErrorType` enum provides standard error codes (e.g., `PERMISSION_DENIED`, `INVALID_ARGUMENT`, `RESOURCE_EXHAUSTED`, `INTERNAL_SERVER_ERROR`) that client applications can use to handle different error cases programmatically.
+</Callout>
+
 ## User and Credit Management
 
 A key advantage of Deploxy is the ability to manage user accounts and billing logic directly within your MCP server.
