@@ -1,82 +1,59 @@
 ---
-title: 'Welcome to Deploxy'
-summary: 'Deploy your MCP servers privately to serverless infrastructure'
-sequence: 0
+title: 'Introduction'
+summary: 'Deploy your private MCP servers to scalable, serverless infrastructure.'
 ---
 
-# Welcome to Deploxy Docs
+# Start Here
 
-<Callout type="success" title="🎉 Welcome!">
-  This documentation will guide you through deploying your Stdio MCP servers to a secure, private, and scalable serverless infrastructure using Deploxy.
-</Callout>
+Welcome to Deploxy, the platform for deploying your MCP (Model Context Protocol) servers to serverless infrastructure while keeping your source code private and secure.
 
-## What is Deploxy?
-
-Deploxy is a platform for deploying your **Stdio MCP server** to a serverless environment with ease. It allows you to:
-
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-  <FeatureCard 
-    icon="Shield" 
-    title="Keep Source Code Private" 
-    description="Your MCP server implementation is hosted securely and never exposed to end-users."
+<CardGroup cols={3}>
+  <Card
+    title="Hello World Deployment"
+    description="Deploy a pre-built example server in less than 5 minutes."
+    href="/getting-started/quickstart-clone"
+    icon="rocket"
   />
-  <FeatureCard 
-    icon="Globe" 
-    title="Publish Standard NPM Packages" 
-    description="Distribute a lightweight proxy package that your users can easily install and use."
+  <Card
+    title="Integrating an Existing Project"
+    description="A step-by-step guide to configure your existing project for Deploxy."
+    href="/getting-started/quickstart-existing"
+    icon="package-plus"
   />
-  <FeatureCard 
-    icon="Rocket" 
-    title="Automate Deployments" 
-    description="A seamless build and deployment process integrated with your git workflow."
+  <Card
+    title="Core Concepts"
+    description="Understand the key concepts that power the Deploxy platform."
+    href="/getting-started/core-concepts"
+    icon="cpu"
   />
-  <FeatureCard 
-    icon="Zap" 
-    title="Scale Effortlessly" 
-    description="Leverage serverless infrastructure to handle any workload, from small projects to large-scale applications."
-  />
-</div>
+</CardGroup>
 
-## Quick Start
+## Features
 
-Ready to get started? A few commands are all it takes.
+Deploxy is a comprehensive deployment platform that allows you to:
 
-<CommandPalette title="Deploy in Minutes">
-  <div className="text-green-400"># Install the Deploxy CLI</div>
-  <div>npm install -g @deploxy/cli</div>
-  <div className="text-green-400 mt-4"># Initialize your project</div>
-  <div>npx @deploxy/cli init</div>
-  <div className="text-green-400 mt-4"># Deploy your server</div>
-  <div>npx @deploxy/cli deploy</div>
-</CommandPalette>
+-   **Deploy MCP servers privately:** Your source code remains secure on our servers, never exposed to end-users.
+-   **Distribute lightweight proxies:** Users install minimal proxy packages from NPM that securely connect to your hosted logic.
+-   **Scale automatically:** Leverage serverless infrastructure that handles traffic spikes without manual intervention.
+-   **Focus on Your Logic:** No need to build a separate backend for secure tool calls or database connections.
+-   **Deploy Globally:** Every deployment is automatically distributed across all supported regions for low-latency user experiences.
 
-## Core Guides
+## Get Started
 
-We recommend starting with the basics and then exploring the guides for more advanced topics.
+### 1. Create an Account
 
-<QuickLinks>
-  <QuickLink
-    to="/docs/getting-started/introduction"
-    title="Introduction"
-    description="Understand the core concepts and architecture of Deploxy."
-    icon="Info"
-  />
-  <QuickLink
-    to="/docs/getting-started/first-deployment"
-    title="Your First Deployment"
-    description="A step-by-step tutorial to get your first MCP server live."
-    icon="Rocket"
-  />
-  <QuickLink
-    to="/docs/guides/authentication"
-    title="Authentication"
-    description="Learn how to secure your MCP server and manage user access."
-    icon="Shield"
-  />
-  <QuickLink
-    to="/docs/api/cli-commands"
-    title="CLI Reference"
-    description="A complete reference for all Deploxy CLI commands."
-    icon="Terminal"
-  />
-</QuickLinks>
+First, [create a free account on Deploxy](https://deploxy.com). You'll get a generous free tier with no credit card required.
+
+### 2. Set up your Node.js Environment
+
+Deploxy uses the standard Node.js ecosystem. Ensure you have **Node.js version 18 or higher** installed on your system.
+
+### 3. Configure Your Auth Token
+
+To connect the Deploxy CLI to your account, you need an authentication token.
+
+1.  Go to the [Tokens page](https://deploxy.com/account/settings/tokens) in your Deploxy account settings.
+2.  Create a new token and copy it.
+3.  Store this token securely where it will not be exposed, for example, as an environment variable. The Quick Start guides will show you exactly how to use this token in your project.
+
+Now you are ready to follow one of the Quick Start guides to deploy your first server!

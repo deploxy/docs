@@ -1,0 +1,54 @@
+---
+title: 'Quick Start'
+summary: 'Deploy a sample "Hello World" server in less than 5 minutes.'
+sequence: 2
+---
+
+# Hello World Example
+
+This guide is the fastest way to get started with Deploxy. We'll clone a ready-made MCP server, configure it, and deploy it in less than 5 minutes.
+
+<Steps>
+
+<Step title="Clone the Quick Start Repository">
+This repository contains a simple "hello world" MCP server.
+```bash
+git clone https://github.com/deploxy/quick-start.git
+cd quick-start
+```
+</Step>
+
+<Step title="Configure Your Project">
+Next, you'll configure the project with your details.
+
+1.  **Set Package Name:** Open `package.json` and change the `name` to something unique that you can publish on NPM, like `@your-npm-username/my-first-deploxy-server`.
+
+2.  **Configure NPM Auth:** Create a file named `.npmrc` in the project root. It's a critical security practice to use an environment variable for your token.
+    ```bash .npmrc
+    //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+    ```
+
+3.  **Configure Deploxy:** Create a file named `.deploxy.json`. The easiest way is to use the [Project Creator](https://deploxy.com/dashboard/new) on your dashboard and copy the generated JSON.
+    A minimal configuration looks like this:
+    ```json .deploxy.json
+    {
+      "authToken": "${process.env.DEPLOXY_TOKEN}",
+      "defaultDeployRegion": "ap-northeast-2"
+    }
+    ```
+<Warning>
+Before deploying, ensure you have set the `DEPLOXY_TOKEN` and `NPM_TOKEN` environment variables in your shell. You can get your Deploxy token from the [API Keys page](https://deploxy.com/account/settings/tokens).
+</Warning>
+</Step>
+
+<Step title="Deploy with Deploxy">
+Now, run the deploy command. This single command will securely upload your server, build it, deploy it globally, and publish the lightweight proxy package to NPM.
+```bash
+npx @deploxy/cli deploy
+```
+<Check>
+That's it! You can monitor the deployment on your [Deploxy Dashboard](https://deploxy.com/dashboard). Once complete, you can run your new MCP server from anywhere with `npx`.
+</Check>
+</Step>
+
+</Steps>

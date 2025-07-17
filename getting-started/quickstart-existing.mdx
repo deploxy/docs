@@ -1,0 +1,55 @@
+---
+title: 'Integrating an Existing Project'
+summary: 'A step-by-step guide to configure your existing project for Deploxy.'
+sequence: 3
+---
+
+# Deploy your existing project
+
+This guide covers the setup process for deploying your existing Node.js project with Deploxy.
+
+<Steps>
+  <Step title="Check Prerequisites">
+    Ensure you have the following:
+    - A [Deploxy Account](https://deploxy.com) and an [NPM Account](https://www.npmjs.com/signup).
+    - **Node.js 18 or higher** installed.
+    - Your project's `package.json` is configured for publishing with the correct `name`, `version`, `files`, and `main` properties.
+  </Step>
+
+  <Step title="Configure Your Project">
+    Next, add the necessary Deploxy and NPM configuration files to your project.
+
+    **1. Create `.npmrc`:** Create a file named `.npmrc` in your project root to authenticate with NPM. Using an environment variable for your token is a critical security practice.
+    ```bash .npmrc
+    //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+    ```
+
+    **2. Create `.deploxy.json`:** Create a file named `.deploxy.json` to configure your deployment. The easiest way to create this file is by using the [Project Creator](https://deploxy.com/dashboard/new) on your dashboard, which provides a user-friendly interface to generate the configuration. Once generated, simply copy it into your project root.
+
+    A minimal configuration looks like this:
+    ```json .deploxy.json
+    {
+      "authToken": "YOUR_DEPLOXY_TOKEN",
+      "defaultDeployRegion": "us-east-1",
+      "stdioArgsIndex": "--args",
+      "mcpPath": "/mcp",
+      "packageType": "js",
+      "injectedEnv": {}
+    }
+    ```
+    <Warning>
+    Before deploying, ensure you have set the `DEPLOXY_TOKEN` and `NPM_TOKEN` environment variables in your shell. You can get your Deploxy token from the [API Keys page](https://deploxy.com/account/settings/tokens).
+    </Warning>
+  </Step>
+
+  <Step title="Deploy Your Project">
+    With the configuration complete, you are ready to deploy.
+    ```bash
+    npx @deploxy/cli deploy
+    ```
+    This command securely uploads your server logic, deploys it globally, and publishes the lightweight proxy package to NPM.
+    <Check>
+    You can monitor the deployment progress on your [Deploxy Dashboard](https://deploxy.com/dashboard).
+    </Check>
+  </Step>
+</Steps>

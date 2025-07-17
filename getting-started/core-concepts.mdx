@@ -4,15 +4,36 @@ summary: 'Understand the fundamental concepts that power Deploxy.'
 sequence: 1.5
 ---
 
-# Core Concepts
+# Why Deploxy
 
 This document explains the key concepts behind Deploxy, providing a solid foundation for understanding how the platform works.
 
-## The Core Problem: Private MCP Servers
+## The Core Problem: Monetizing Public MCP Servers
 
-Standard NPM packages are public, meaning anyone can view their source code. This is a problem for MCP (Model Context Protocol) servers that contain proprietary business logic, connect to private databases, or use secret API keys.
+The Stdio MCP server model is powerful but presents two major challenges for developers who want to build a business around their creations:
 
-Deploxy solves this by allowing you to deploy your MCP server to a secure, private, serverless environment while distributing a lightweight, public-facing proxy package to your users.
+1.  **Exposed Source Code:** Publishing to NPM exposes your entire source code. This leaves your proprietary business logic and secret keys unprotected.
+
+2.  **Bypassable Monetization:** Client-side monetization, like a credit system, is insecure. Users can simply download your code, remove the paywall, and run it for free.
+
+### The Backend Dilemma
+
+The traditional solution is to build a separate, private backend server to handle your sensitive business and monetization logic. However, this introduces a new set of problems:
+
+-   **Infrastructure Complexity:** You are now responsible for building, deploying, and maintaining a scalable, secure backend.
+-   **Global Latency:** While NPM can distribute your client code globally, if your backend only runs in a single region (e.g., `us-east-1`), users in other parts of the world will experience significant network lag, leading to a poor user experience.
+
+## The Deploxy Solution: A Secure Global Backend, Simplified
+
+Deploxy solves these fundamental problems by providing a secure, globally distributed backend for your MCP server, without the operational overhead.
+
+When you deploy with Deploxy:
+1.  **Your code stays private:** Your MCP server code, containing all your valuable business and monetization logic, is deployed to our secure, isolated cloud environment. It is **never** published to NPM.
+2.  **We publish a proxy:** Deploxy automatically generates and publishes a minimal, lightweight proxy package to NPM. This is all the end-user ever interacts with.
+3.  **Requests are securely routed:** The proxy client securely forwards requests from the user to your private server running on our global network.
+4.  **Your logic is enforced:** Because your monetization logic (e.g., credit deduction) runs on the secure server, it cannot be bypassed by the end-user.
+
+This architecture gives you the best of both worlds: the simplicity of NPM distribution for your users, and the security and performance of a private, globally-replicated backend for your business.
 
 ## 1. The Private MCP Server
 
@@ -59,3 +80,49 @@ Deploxy is designed to be integrated directly into your development and CI/CD wo
 -   `npx @deploxy/cli logs`: Allows you to view the real-time logs of your running MCP server for debugging and monitoring.
 
 This workflow allows you to automate deployments and manage your application's lifecycle directly from your terminal or CI/CD pipeline.
+
+---
+
+## How Deploxy Works
+
+The Deploxy platform follows a simple but powerful architecture:
+
+<Steps>
+  <Step title="You Write Your MCP Server">
+    Build your MCP server with all your business logic, database connections, and private functionality. This runs entirely in Deploxy's secure cloud environment.
+  </Step>
+  <Step title="Deploy with the Deploxy CLI">
+    Using our CLI tool, your code is securely uploaded to our infrastructure where it's built and deployed as a serverless function.
+  </Step>
+  <Step title="We Generate a Proxy Package">
+    Deploxy automatically creates a lightweight NPM package that acts as a proxy to your private server. This proxy is what you'll publish for your users.
+  </Step>
+  <Step title="Users Install the Proxy">
+    Your users install the proxy package via NPM, which seamlessly connects to your secure server without ever exposing your source code.
+  </Step>
+</Steps>
+
+### Architecture Overview
+
+Here's how Deploxy's architecture ensures both security and performance:
+
+```mermaid
+graph TD
+    A[Your MCP Server Code] --> B(Deploxy CLI);
+    B -- Upload --> Deploxy-Cloud{Deploxy Cloud};
+    subgraph Deploxy-Cloud
+        D[Build & Deploy] --> E["Serverless Function 
+        (Your MCP Server Code)"];
+        E --> F[Generate Proxy Code];
+    end
+    F -- Publish --> G[NPM Registry];
+    H[End User] -- npm install --> G;
+    H -- npx your-pkg --> I[Proxy Client];
+    I -- MCP Call --> E;
+    E -- Streaming Response --> I;
+```
+
+<Warning>
+  Your source code is **never** exposed to end users. The proxy package only contains connection logic, while your business logic remains secure in Deploxy's cloud.
+</Warning>
+

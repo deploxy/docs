@@ -22,20 +22,6 @@ The easiest way to view logs is through the Deploxy web interface:
 
 The dashboard provides a real-time log stream with features for filtering by log level and searching for specific terms.
 
-### Using the Deploxy CLI
-
-For programmatic access or to view logs in your terminal, use the `deploxy logs` command.
-
-<CodeBlock title="Terminal" language="bash">
-```bash
-# Follow logs in real-time for a specific deployment
-npx @deploxy/cli logs <deployment-id> --follow
-
-# Fetch the last 100 lines of error logs
-npx @deploxy/cli logs <deployment-id> --level error --tail 100
-```
-</CodeBlock>
-
 ## Structured Logging
 
 For the best logging experience, we recommend using structured JSON logging in your MCP server. This allows Deploxy to parse your logs correctly and provide rich filtering capabilities.

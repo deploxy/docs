@@ -14,12 +14,13 @@
   "navigation": {
     "groups": [
       {
-        "group": "Introduction",
-        "pages": ["index"]
-      },
-      {
         "group": "Getting Started",
-        "pages": ["getting-started/introduction", "getting-started/installation", "getting-started/first-deployment"]
+        "pages": [
+          "index",
+          "getting-started/quickstart-clone",
+          "getting-started/quickstart-existing",
+          "getting-started/core-concepts"
+        ]
       },
       {
         "group": "Guides",
@@ -30,6 +31,10 @@
           "guides/troubleshooting",
           "guides/configuration"
         ]
+      },
+      {
+        "group": "Resources",
+        "pages": ["resources/pricing", "resources/regions"]
       },
       {
         "group": "API",
