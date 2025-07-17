@@ -32,9 +32,9 @@
         "group": "Guides",
         "pages": [
           "guides/environments",
-          "guides/authentication",
-          "guides/monitoring",
           "guides/troubleshooting",
+          "guides/monitoring",
+          "guides/authentication",
           "guides/configuration"
         ]
       },
