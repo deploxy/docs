@@ -21,12 +21,12 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
   "authToken": "your-auth-token-here",
   "defaultDeployRegion": "ap-northeast-2",
   "stdioArgsIndex": "--args",
+  "packageType": "js",
   "mcpPath": "/mcp",
   "injectedEnv": {
-    "NODE_ENV": "production",
+    "CUSTOM_VALUE": "your custom value",
     "DATABASE_URL": "${process.env.DATABASE_URL}"
-  },
-  "packageType": "js"
+  }
 }
 ```
 
@@ -83,13 +83,7 @@ npx @deploxy/cli deploy --config .deploxy.us-west-2.json
 
 ### Available Regions
 
-Deploxy supports a wide range of AWS regions. Some popular choices include:
-- `us-east-1` (N. Virginia)
-- `us-west-2` (Oregon)
-- `eu-west-1` (Ireland)
-- `ap-northeast-1` (Tokyo)
-- `ap-northeast-2` (Seoul)
-- `ap-southeast-1` (Singapore)
+Deploxy deploys to a wide range of global regions. For a complete and up-to-date list of all supported regions and their identifiers, please see the [Available Regions](/resources/regions) documentation.
 
 ## Advanced Build Options (Future)
 

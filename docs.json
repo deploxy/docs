@@ -25,8 +25,8 @@
       {
         "group": "Guides",
         "pages": [
-          "guides/authentication",
           "guides/environments",
+          "guides/authentication",
           "guides/monitoring",
           "guides/troubleshooting",
           "guides/configuration"
