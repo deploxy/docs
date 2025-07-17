@@ -34,11 +34,7 @@
       },
       {
         "group": "Resources",
-        "pages": ["resources/pricing", "resources/regions"]
-      },
-      {
-        "group": "API",
-        "pages": ["api/overview", "api/cli-commands"]
+        "pages": ["resources/pricing", "resources/regions", "api/cli-commands"]
       }
     ]
   },
