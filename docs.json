@@ -40,7 +40,7 @@
       },
       {
         "group": "Resources",
-        "pages": ["resources/pricing", "resources/regions", "api/cli-commands"]
+        "pages": ["resources/pricing", "resources/regions", "resources/cli-commands"]
       }
     ]
   },
