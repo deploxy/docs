@@ -1,10 +1,10 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "name": "Deploxy Docs",
-  "description": "Deploxy is a serverless proxy deployment platform for STDIO applications, allowing you to publish NPM packages while keeping your source code private. Ideal for protecting proprietary logic in AI models, data processors, and MCP servers.",
+  "description": "Deploxy is a serverless proxy platform for Stdio MCP server, allowing you to publish NPM packages while keeping your source code private.",
   "seo": {
-    "title": "Deploxy | Secure Serverless Deployment for Private Code",
-    "description": "Deploy private MCP servers and STDIO applications as NPM packages without exposing your source code. Deploxy provides a secure, scalable, serverless backend for your business logic.",
+    "title": "Deploxy | Stdio MCP Server to serverless",
+    "description": "Deploy Stdio MCP server as NPM packages without exposing your source code. Deploxy provides a secure, scalable, serverless backend for your business logic.",
     "image": "/logo/deploxy_logo_text.png"
   },
   "theme": "maple",
@@ -30,13 +30,7 @@
       },
       {
         "group": "Guides",
-        "pages": [
-          "guides/environments",
-          "guides/troubleshooting",
-          "guides/monitoring",
-          "guides/authentication",
-          "guides/configuration"
-        ]
+        "pages": ["guides/configuration", "guides/troubleshooting", "guides/monitoring", "guides/authentication"]
       },
       {
         "group": "Resources",

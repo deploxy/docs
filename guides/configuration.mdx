@@ -1,14 +1,15 @@
 ---
-title: 'Advanced Configuration'
-sidebarTitle: 'Advanced Configuration'
-description: 'A deep dive into the .deploxy.json file, environment variables, regional settings, and other advanced deployment configurations.'
-sequence: 8
-keywords: ['configuration', 'deploxy.json', 'environment variables', 'env', 'secrets', 'regions', 'advanced']
+title: 'Configuration'
+sidebarTitle: 'Configuration'
+description: 'A deep dive into the .deploxy.json file, managing environment variables, regional settings, and other advanced deployment configurations.'
+sequence: 5
+keywords: ['configuration', 'deploxy.json', 'environment variables', 'env', 'secrets', 'regions', 'advanced', 'environments', 'staging', 'production', 'development', 'dev', 'prod', 'injectedEnv', 'ci/cd']
+icon: 'settings'
 ---
 
-# Advanced Configuration
+# Configuration
 
-This guide covers the advanced configuration options available in your `.deploxy.json` file, allowing you to fine-tune your deployments.
+This guide covers the configuration options available in your `.deploxy.json` file, allowing you to manage environments, secrets, and fine-tune your deployments.
 
 ## The `.deploxy.json` File
 
@@ -20,14 +21,15 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
 
 ```json
 {
-  "authToken": "your-auth-token-here",
+  "authToken": "${process.env.DEPLOXY_TOKEN}",
   "defaultDeployRegion": "ap-northeast-2",
   "stdioArgsIndex": "--args",
   "packageType": "js",
   "mcpPath": "/mcp",
   "injectedEnv": {
-    "CUSTOM_VALUE": "your custom value",
-    "DATABASE_URL": "${process.env.DATABASE_URL}"
+    "NODE_ENV": "${process.env.NODE_ENV}",
+    "DATABASE_URL": "${process.env.DATABASE_URL}",
+    "STRIPE_API_KEY": "${process.env.STRIPE_API_KEY}"
   }
 }
 ```
@@ -38,18 +40,32 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
 -   **`defaultDeployRegion`** (required): The primary AWS region where your serverless function will be deployed. Choose the region closest to your users for the best performance.
 -   **`stdioArgsIndex`** (optional): Specifies the command-line flag that separates your script's arguments from the arguments intended for the MCP server. Defaults to `"--args"`.
 -   **`mcpPath`** (optional): The URL path for your MCP endpoint. Defaults to `"/mcp"`. The final URL will look like `https://<deployment-id>.deploxy.com/mcp`.
--   **`injectedEnv`** (optional): A key-value map of environment variables that will be securely injected into your serverless function's runtime. This is the recommended way to handle secrets.
+-   **`injectedEnv`** (optional): A key-value map of environment variables that will be securely injected into your serverless function's runtime. This is the recommended way to handle secrets and environment-specific configuration.
 -   **`packageType`** (required): The type of your package. Currently, only `"js"` for JavaScript/TypeScript projects is supported. Python support is coming soon.
 
-## Environment Variables
+## Secure Environment Management with `injectedEnv`
 
-The `injectedEnv` block is a powerful feature for managing your application's configuration securely.
+A key feature of Deploxy's architecture is the strict separation between your private, server-side MCP server and the lightweight proxy client that end-users install. The `injectedEnv` property is the primary tool for managing configuration securely.
 
-### Static vs. Dynamic Variables
+<Callout type="warning" title="Server-Side Only">
+These variables are **never** included in the client-side proxy package published to NPM and are **never** exposed to the end-user. They exist exclusively within the secure Deploxy cloud environment where your MCP server code executes.
+</Callout>
 
-You can define both static and dynamic environment variables.
+This allows you to safely manage sensitive data like:
+- Database connection strings
+- Private API keys for other services (e.g., Stripe, OpenAI)
+- Environment-specific settings (e.g., `development` vs. `production`)
 
-```json
+### How It Works: Static vs. Dynamic Variables
+
+Your `.deploxy.json` can define two types of injected variables:
+
+1.  **Static Variables**: The value is hardcoded. Useful for non-sensitive, fixed values like a log level.
+2.  **Dynamic Variables**: The value is read from the environment where you run the `npx @deploxy/cli deploy` command. This is the **required method for all secrets**.
+
+Here’s a typical configuration using both:
+
+```json .deploxy.json
 {
   "injectedEnv": {
     "LOG_LEVEL": "info", // Static value
@@ -61,6 +77,101 @@ You can define both static and dynamic environment variables.
 <Callout type="warning" title="Security Note">
 When using dynamic variables like `${process.env.VAR_NAME}`, the value is resolved by the Deploxy CLI from the environment where the `deploy` command is run. These values are then securely transmitted and stored in your function's environment, never in your repository.
 </Callout>
+
+### Value Types: Strings Only
+
+It is crucial to remember that all environment variables, and therefore all values within the `injectedEnv` object, must be **strings**. This is a standard convention for environment variables across all platforms.
+
+Providing non-string values like numbers, booleans, or nested objects will result in a deployment error.
+
+<CodeBlock title=".deploxy.json - Correct ✅" language="json">
+```json
+{
+  "injectedEnv": {
+    "ENABLE_FEATURE_X": "true",
+    "API_TIMEOUT_MS": "30000",
+    "CONFIG_JSON": "{\"key\":\"value\",\"nested\":true}"
+  }
+}
+```
+</CodeBlock>
+
+<CodeBlock title=".deploxy.json - Incorrect ❌" language="json">
+```json
+{
+  "injectedEnv": {
+    "ENABLE_FEATURE_X": true,
+    "API_TIMEOUT_MS": 30000,
+    "CONFIG_JSON": {
+      "key": "value",
+      "nested": true
+    }
+  }
+}
+```
+</CodeBlock>
+
+<Callout type="info" title="Handling Data Types in Your Code">
+In your server-side code, you will need to parse these string values back into their intended types.
+
+```typescript
+const featureXEnabled = process.env.ENABLE_FEATURE_X === 'true';
+const timeout = parseInt(process.env.API_TIMEOUT_MS, 10);
+const config = JSON.parse(process.env.CONFIG_JSON);
+```
+</Callout>
+
+### Practical Workflow with `.env` Files
+
+The most effective way to manage dynamic variables for different environments is with `.env` files.
+
+#### 1. Create Environment-Specific `.env` Files
+
+Create separate `.env` files for each environment. **Crucially, add `.env*` to your `.gitignore` file to prevent committing secrets to version control.**
+
+**.env.development**
+```
+NODE_ENV=development
+DATABASE_URL=postgres://user:pass@dev-db.example.com/mydb
+STRIPE_API_KEY=sk_test_...
+```
+
+**.env.production**
+```
+NODE_ENV=production
+DATABASE_URL=postgres://user:pass@prod-db.example.com/mydb
+STRIPE_API_KEY=sk_live_...
+```
+
+#### 2. Deploy Using a Specific Environment
+
+Use a tool like `dotenv-cli` to load these variables before deploying. This keeps your deployment command clean and your configuration secure.
+
+```bash
+# Deploy using development settings
+npx dotenv -e .env.development -- npx @deploxy/cli deploy
+
+# Deploy using production settings
+npx dotenv -e .env.production -- npx @deploxy/cli deploy
+```
+
+### Accessing Variables in Your Server Code
+
+Inside your MCP server's code, these injected variables are available via `process.env`.
+
+```typescript
+// This code runs securely on the Deploxy server, not on the client.
+import { connectToDatabase } from './database';
+import Stripe from 'stripe';
+
+// Initialize services with securely injected environment variables
+const db = connectToDatabase(process.env.DATABASE_URL);
+const stripe = new Stripe(process.env.STRIPE_API_KEY);
+
+export async function handleToolCall(request) {
+  // Your logic here can now securely access the database and Stripe
+}
+```
 
 ## Regional Configuration
 
