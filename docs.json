@@ -42,8 +42,8 @@
     "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
   "logo": {
-    "light": "/logo/deploxy_logo_text.png",
-    "dark": "/logo/deploxy_logo_text.png",
+    "light": "/logo/logo_text_hr_light.png",
+    "dark": "/logo/logo_text_hr_dark.png",
     "href": "https://www.deploxy.com"
   },
   "navbar": {
