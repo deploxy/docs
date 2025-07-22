@@ -1,16 +1,22 @@
 ---
-title: 'Available Regions'
-sidebarTitle: 'Available Regions'
+title: 'Regions'
+sidebarTitle: 'Regions'
 description: 'A list of all supported AWS regions where your MCP server is deployed, ensuring low latency for your users around the globe.'
 keywords: ['regions', 'global', 'latency', 'aws', 'locations', 'data centers']
 icon: 'map-pin'
 ---
 
-# Available Regions
+# Select Region
 
 Deploxy deploys your MCP server to all of the following AWS regions simultaneously, ensuring low latency for your users around the globe.
 
 When using the `--region` flag, you can use any of the following identifiers.
+
+# Auto Region Routing
+
+If you are on the Pay-as-you-go plan, the Auto Region Routing feature is enabled. If an end-user doesn't provide the `--region` flag, the request will be automatically routed to the fastest region based on their location.
+
+# Available Regions
 
 ## Americas
 - `us-east-1` (N. Virginia)

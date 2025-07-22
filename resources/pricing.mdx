@@ -1,56 +1,73 @@
 ---
-title: 'Plans and Pricing'
-description: 'Compare the Hobby and Pro plans to choose the one that best fits your needs for MCP operations, global routing, and scalability.'
+title: 'Pricing'
+description: 'Compare our Free and Pay-as-you-go plans to choose the one that best fits your needs for MCP operations, global routing, and scalability.'
 sequence: 11
-keywords: ['pricing', 'plans', 'hobby', 'pro', 'billing', 'cost', 'usage', 'limits']
+keywords: ['pricing', 'plans', 'free', 'pay-as-you-go', 'billing', 'cost', 'usage', 'limits', 'mcp operation']
 icon: 'dollar-sign'
 ---
 
-# Plans
+## What is an MCP Operation?
 
-Deploxy offers different plans tailored to your project's scale and requirements. Below is a detailed breakdown of what each plan includes, focusing on the powerful global deployment and request routing features.
+The core of our pricing is the **MCP Operation**. This is the unit we use to measure the usage of your deployed servers.
 
-## Global Deployment for All Plans
+An MCP Operation can be one of the following:
 
-A core feature of Deploxy is that **every deployment is a global deployment**. When you deploy your MCP server, it is automatically distributed across all of our [supported global regions](/resources/regions) at no extra cost, regardless of your plan.
+-   **List Operation:** A request to list available resources, prompts, or tools.
+-   **Call Operation:** A request to execute a resource, prompt, or tool.
 
-This ensures that your application is positioned to serve a global audience with low latency. The key difference between the plans lies in how user requests are routed to these distributed servers.
+### Memory-Based Calculation
 
-## Hobby Plan
+The number of MCP Operations consumed by a request depends on the memory size configured for your serverless function. The formula is:
 
-The Hobby plan is designed for personal projects, learning, and experimentation. It's completely free and does not require a credit card.
+**`Consumed MCP Operations = Number of Requests * (Memory Size in MB / 256 MB)`**
+
+For example:
+-   A request to a function with **256MB** of memory consumes **1** MCP Operation.
+-   A request to a function with **512MB** of memory consumes **2** MCP Operations.
+
+This model ensures you only pay for the resources you actually use.
+
+## Plan Comparison
+
+| Feature                    | Free                               | Pay as you go                          |
+| :------------------------- | :--------------------------------- | :------------------------------------- |
+| **Monthly Cost**           | $0                                 | From $0/month                          |
+| **Monthly Free MCP Ops**   | 5,000                              | 10,000                                 |
+| **Extra Usage**            | Not available                      | $1 per 1,000 extra ops                 |
+| **Projects**               | 1 Project                          | Unlimited                              |
+| **Global Routing**         | Manual Region Selection            | Automatic (Lowest Latency)             |
+| **Budget Limit**           | N/A                                | Yes                                    |
+| **Credit Card Required**   | No                                 | Yes (for usage beyond free tier)       |
+
+---
+
+## Free Plan
+
+The Free plan is perfect for personal projects, learning, and experimentation.
 
 **Key Features:**
 
--   **10,000 MCP Operations per Month:** A generous allowance for development and small-scale applications.
--   **Fast Global Access:** Your serverless function is deployed across all of our [supported global regions](/resources/regions), ensuring your end-users worldwide can achieve low-latency connections.
-    -   **Default Routing:** If an end-user makes a request without the `--region` flag, their request is routed to the `defaultDeployRegion` you set in your `.deploxy.json`.
-    -   **Optimized Manual Routing:** For the best performance, your users can manually specify the region closest to them to minimize latency.
+-   **Free 5,000 MCP Operations per Month:** A generous allowance for development and small-scale applications.
+-   **1 Project:** You can manage one project under the Free plan.
+-   **Manual Global Routing:** Your server is deployed globally. For the best performance, your users can manually specify the region closest to them to minimize latency. If no region is specified, requests go to your `defaultDeployRegion`.
     ```bash
     # For low latency, a user in London should specify the eu-west-2 region
     npx -y @my-org/mcp --region eu-west-2
     ```
--   **Unlimited Projects and Deployments:** Create as many projects and deploy as often as you need.
 
-## Pro Plan
+## Pay as you go Plan
 
-The Pro plan is built for professional developers and applications that demand the best performance and user experience automatically.
+The Pay as you go plan is built for professional developers and applications that demand the best performance, scalability, and user experience.
 
 **Key Features:**
 
--   **All features from the Hobby plan, plus:**
--   **10 Million MCP Operations per Month:** A significantly higher allowance for production traffic.
--   **Pay-as-you-go Scaling (Opt-in):** To ensure service continuity after exceeding your monthly allowance, you must enable **Usage-Based Charging**. This option is **disabled by default** for new Pro plan subscriptions.
-    -   **If disabled (default):** Your service will be temporarily paused if you exceed 10 million operations, resuming in the next billing cycle.
-    -   **If enabled:** You can continue to operate seamlessly. Any usage beyond your allowance is billed at **$0.10 per 10,000 extra operations**.
--   **Automatic Edge Routing:** This is the premier feature of the Pro plan. When a user makes a request without specifying a region, Deploxy's edge network automatically routes their request to the nearest, lowest-latency deployment. This provides the fastest possible response time for every user, wherever they are.
+-   **Free 10,000 MCP Operations per Month:** A larger free allowance for your applications.
+-   **Unlimited Projects:** Create and manage as many projects as you need.
+-   **Pay-as-you-go for Extra Usage:** Never worry about hitting a hard limit. Once you've used your free operations, you're billed at **$1 per 1,000 extra operations**.
+-   **Set a Budget Limit:** To avoid unexpected costs, you can set a monthly spending limit for extra usage. You can even set it to $0 to cap usage at the free allowance.
+-   **Automatic Edge Routing:** This is the premier feature of the Pay as you go plan. Deploxy's edge network automatically routes user requests to the nearest, lowest-latency deployment, providing the fastest possible response time for every user, wherever they are.
     ```bash
     # Request is automatically routed to the fastest region for the user
     npx -y @my-org/mcp
     ```
--   **Manual Region Override:** While routing is automatic, users still have the option to manually target a specific region if needed, giving them full control.
-    ```bash
-    # A user can still target a specific region if required
-    npx -y @my-org/mcp --region=ap-northeast-2
-    ```
--   **Python MCP Server Support (Coming Soon):** The Pro plan will include support for deploying MCP servers written in Python.
+-   **Manual Region Override:** While routing is automatic, users still have the option to manually target a specific region if needed.

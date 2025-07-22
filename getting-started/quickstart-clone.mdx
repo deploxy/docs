@@ -32,15 +32,23 @@ Next, you'll configure the project with your details.
     ```
 
 3.  **Configure Deploxy:** Create a file named `.deploxy.json`. The easiest way is to use the [Project Creator](https://deploxy.com/dashboard/new) on your dashboard and copy the generated JSON.
-    A minimal configuration looks like this:
+    Configuration looks like this:
     ```json .deploxy.json
     {
-      "authToken": "${process.env.DEPLOXY_TOKEN}",
+      "authToken": "YOUR_DEPLOXY_AUTH_TOKEN",
       "defaultDeployRegion": "ap-northeast-2"
+      "stdioArgsIndex": "--args",
+      "packageType": "js",
+      "nodejsRuntime": "nodejs22x",
+      "memorySizeMB": 256,
+      "injectedEnv": {
+        "DATABASE_URL": "YOU_CAN_HANDLE_ANY_SECRET",
+        "ANY_API_KEY": "IN_YOUR_STDIO_MCP_SERVER"
+      }
     }
     ```
 <Warning>
-Before deploying, ensure you have set the `DEPLOXY_TOKEN` and `NPM_TOKEN` environment variables in your shell. You can get your Deploxy token from the [Tokens page](https://deploxy.com/account/settings/tokens).
+You can get your Deploxy token from the [Tokens page](https://deploxy.com/account/settings/tokens).
 </Warning>
 </Step>
 

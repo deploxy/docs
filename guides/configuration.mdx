@@ -21,15 +21,22 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
 
 ```json
 {
-  "authToken": "${process.env.DEPLOXY_TOKEN}",
-  "defaultDeployRegion": "ap-northeast-2",
+  "authToken": "YOUR_DEPLOXY_TOKEN",
+  "defaultDeployRegion": "us-east-1",
   "stdioArgsIndex": "--args",
   "packageType": "js",
-  "mcpPath": "/mcp",
+  "nodejsRuntime": "nodejs22x",
+  "memorySizeMB": 256,
   "injectedEnv": {
-    "NODE_ENV": "${process.env.NODE_ENV}",
-    "DATABASE_URL": "${process.env.DATABASE_URL}",
-    "STRIPE_API_KEY": "${process.env.STRIPE_API_KEY}"
+    "NODE_ENV": "production",
+    "DATABASE_URL": "YOUR_DATABASE_URL",
+    "STRIPE_API_KEY": "YOUR_SECRET_KEY"
+  },
+  "buildOptions": {
+    "pkgManager": "npm",
+    "preInstallCommand": "",
+    "installCommand": "npm install --proudction",
+    "postInstallCommand": ""
   }
 }
 ```
@@ -37,11 +44,12 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
 ### Key Properties
 
 -   **`authToken`** (required): Your Personal Access Token from the Deploxy dashboard. It's recommended to use an environment variable for this, e.g., `"${process.env.DEPLOXY_TOKEN}"`.
--   **`defaultDeployRegion`** (required): The primary AWS region where your serverless function will be deployed. Choose the region closest to your users for the best performance.
+-   **`defaultDeployRegion`** (required): The primary routing AWS region where your serverless function will be deployed. Choose the region closest to your users for the best performance.
 -   **`stdioArgsIndex`** (optional): Specifies the command-line flag that separates your script's arguments from the arguments intended for the MCP server. Defaults to `"--args"`.
--   **`mcpPath`** (optional): The URL path for your MCP endpoint. Defaults to `"/mcp"`. The final URL will look like `https://<deployment-id>.deploxy.com/mcp`.
--   **`injectedEnv`** (optional): A key-value map of environment variables that will be securely injected into your serverless function's runtime. This is the recommended way to handle secrets and environment-specific configuration.
 -   **`packageType`** (required): The type of your package. Currently, only `"js"` for JavaScript/TypeScript projects is supported. Python support is coming soon.
+-   **`nodejsRuntime`** (optional): The NodeJS runtime for your serverless function. Defaults to `"nodejs22x"`. You can choose `"nodejs20x"` or `"nodejs22x"`
+-   **`memorySizeMB`** (optional): The serverless function memory limit. Defaults to `256`. You can choose `256`, `512`, `1024`, `2048`, `4096`
+-   **`injectedEnv`** (optional): A key-value map of environment variables that will be securely injected into your serverless function's runtime. This is the recommended way to handle secrets and environment-specific configuration.
 
 ## Secure Environment Management with `injectedEnv`
 
