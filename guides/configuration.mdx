@@ -39,7 +39,7 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
 
 -   **`authToken`** (required): Your Access Token from the [Tokens page](https://deploxy.com/account/settings/tokens).
 -   **`defaultDeployRegion`** (required): The primary AWS region for deployment. See [Regional Configuration](#regional-configuration).
--   **`stdioArgsIndex`** (optional): A delimiter for command-line arguments. Defaults to `"--args"`. See [Distinguishing Arguments with `stdioArgsIndex`](#distinguishing-arguments-with-stdioargsindex).
+-   **`stdioArgsIndex`** (optional): A delimiter for command-line arguments. Defaults to `--args`. See [Distinguishing Arguments with `stdioArgsIndex`](#distinguishing-arguments-with-stdioargsindex).
 -   **`packageType`** (required): Specifies the package type. Currently, only `"js"` (JavaScript/TypeScript) is supported.
 -   **`nodejsRuntime`** (optional): Specifies the Node.js runtime for your serverless function (e.g., `"nodejs22x"`). Defaults to `"nodejs22x"`.
 -   **`memorySizeMB`** (optional): Defines the memory allocation for your serverless function in megabytes. This setting affects billing; for details, refer to our [Pricing documentation](/resources/pricing). Defaults to `256`.
@@ -108,7 +108,7 @@ For instance, if you place a flag like `--region` after the `stdioArgsIndex` del
 
 ### Configuration Example
 
-You define the delimiter in your `.deploxy.json` file. The default is `"--args"`.
+You define the delimiter in your `.deploxy.json` file. The default is `--args`.
 
 ```json .deploxy.json
 {
