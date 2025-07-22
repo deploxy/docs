@@ -46,7 +46,7 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
 -   **`injectedEnv`** (optional): Securely provides environment variables to your server. See [Secure Environment Management with `injectedEnv`](#secure-environment-management-with-injectedenv).
 -   **`packageManager`** (optional): Specifies the package manager (`npm`, `pnpm`, `yarn`). Defaults to `npm`. See [Package Manager Configuration](#package-manager-configuration).
 
-## Secure Environment Management with `injectedEnv`
+## Environment variables using `injectedEnv`
 
 The `injectedEnv` property is the primary method for securely providing environment variables to your MCP server. These variables are injected into your serverless environment during deployment and are never exposed to the end-user's client.
 
@@ -94,7 +94,15 @@ const config = JSON.parse(process.env.CONFIG_JSON);
 ```
 </CodeGroup>
 
-## Distinguishing Arguments with `stdioArgsIndex`
+## Regional Configuration
+
+The `defaultDeployRegion` sets the primary deployment location for your server. For end-users on the Free Plan, all operations are routed to this region unless they specify a different one using the `--region` flag. This routing behavior does not apply to Pay-As-You-Go plans.
+
+### Available Regions
+
+Deploxy supports deployment to a wide range of global regions. For a complete, up-to-date list of all supported regions and their identifiers, please see the [Available Regions](/resources/regions) documentation.
+
+## End-User args with `stdioArgsIndex`
 
 This property acts as a delimiter to distinguish between arguments intended for the Deploxy platform and those for your MCP server. This is crucial for preventing conflicts between Deploxy's internal flags (like `--region`) and your server's custom parameters.
     
@@ -168,14 +176,6 @@ npx -y @your/mcp --region us-east-1 --args user-custom-key user-token
 }
 ```
 </CodeGroup>
-
-## Regional Configuration
-
-The `defaultDeployRegion` sets the primary deployment location for your server. For end-users on the Free Plan, all operations are routed to this region unless they specify a different one using the `--region` flag. This routing behavior does not apply to Pay-As-You-Go plans.
-
-### Available Regions
-
-Deploxy supports deployment to a wide range of global regions. For a complete, up-to-date list of all supported regions and their identifiers, please see the [Available Regions](/resources/regions) documentation.
 
 ## Package Manager Configuration
 
