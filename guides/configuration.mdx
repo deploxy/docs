@@ -7,13 +7,9 @@ keywords: ['configuration', 'deploxy.json', 'environment variables', 'env', 'sec
 icon: 'settings'
 ---
 
-# Configuration
-
-This guide covers the configuration options available in your `.deploxy.json` file, allowing you to manage environments, secrets, and fine-tune your deployments.
-
 ## The `.deploxy.json` File
 
-This file is the heart of your Deploxy project configuration. It tells the CLI how to build, deploy, and manage your MCP server.
+This file is the primary configuration for your Deploxy project. It instructs the Deploxy CLI on how to deploy and manage your MCP server.
 
 ### Basic Structure
 
@@ -32,68 +28,42 @@ Here is a comprehensive example of the `.deploxy.json` file with commonly used o
     "DATABASE_URL": "YOUR_DATABASE_URL",
     "STRIPE_API_KEY": "YOUR_SECRET_KEY"
   },
-  "buildOptions": {
-    "pkgManager": "npm",
-    "preInstallCommand": "",
-    "installCommand": "npm install --proudction",
-    "postInstallCommand": ""
+  "packageManager": {
+    "manager": "npm",
+    "installCommand": "npm install --production"
   }
 }
 ```
 
 ### Key Properties
 
--   **`authToken`** (required): Your Personal Access Token from the Deploxy dashboard. It's recommended to use an environment variable for this, e.g., `"${process.env.DEPLOXY_TOKEN}"`.
--   **`defaultDeployRegion`** (required): The primary routing AWS region where your serverless function will be deployed. Choose the region closest to your users for the best performance.
--   **`stdioArgsIndex`** (optional): Specifies the command-line flag that separates your script's arguments from the arguments intended for the MCP server. Defaults to `"--args"`.
--   **`packageType`** (required): The type of your package. Currently, only `"js"` for JavaScript/TypeScript projects is supported. Python support is coming soon.
--   **`nodejsRuntime`** (optional): The NodeJS runtime for your serverless function. Defaults to `"nodejs22x"`. You can choose `"nodejs20x"` or `"nodejs22x"`
--   **`memorySizeMB`** (optional): The serverless function memory limit. Defaults to `256`. You can choose `256`, `512`, `1024`, `2048`, `4096`
--   **`injectedEnv`** (optional): A key-value map of environment variables that will be securely injected into your serverless function's runtime. This is the recommended way to handle secrets and environment-specific configuration.
+-   **`authToken`** (required): Your Access Token from the [Tokens page](https://deploxy.com/account/settings/tokens).
+-   **`defaultDeployRegion`** (required): The primary AWS region for deployment. See [Regional Configuration](#regional-configuration).
+-   **`stdioArgsIndex`** (optional): A delimiter for command-line arguments. Defaults to `"--args"`. See [Distinguishing Arguments with `stdioArgsIndex`](#distinguishing-arguments-with-stdioargsindex).
+-   **`packageType`** (required): Specifies the package type. Currently, only `"js"` (JavaScript/TypeScript) is supported.
+-   **`nodejsRuntime`** (optional): Specifies the Node.js runtime for your serverless function (e.g., `"nodejs22x"`). Defaults to `"nodejs22x"`.
+-   **`memorySizeMB`** (optional): Defines the memory allocation for your serverless function in megabytes. This setting affects billing; for details, refer to our [Pricing documentation](/resources/pricing). Defaults to `256`.
+-   **`injectedEnv`** (optional): Securely provides environment variables to your server. See [Secure Environment Management with `injectedEnv`](#secure-environment-management-with-injectedenv).
+-   **`packageManager`** (optional): Specifies the package manager (`npm`, `pnpm`, `yarn`). Defaults to `npm`. See [Package Manager Configuration](#package-manager-configuration).
 
 ## Secure Environment Management with `injectedEnv`
 
-A key feature of Deploxy's architecture is the strict separation between your private, server-side MCP server and the lightweight proxy client that end-users install. The `injectedEnv` property is the primary tool for managing configuration securely.
+The `injectedEnv` property is the primary method for securely providing environment variables to your MCP server. These variables are injected into your serverless environment during deployment and are never exposed to the end-user's client.
 
-<Callout type="warning" title="Server-Side Only">
-These variables are **never** included in the client-side proxy package published to NPM and are **never** exposed to the end-user. They exist exclusively within the secure Deploxy cloud environment where your MCP server code executes.
-</Callout>
+<Warning title="Important Security Practice">
+The `.deploxy.json` file often contains sensitive data like API keys. To prevent it from being committed to version control, you **must** add this file to your `.gitignore`.
+</Warning>
 
-This allows you to safely manage sensitive data like:
-- Database connection strings
-- Private API keys for other services (e.g., Stripe, OpenAI)
-- Environment-specific settings (e.g., `development` vs. `production`)
+All values in the `injectedEnv` object must be **strings**. These values are read from your `.deploxy.json` file at deployment time and made available inside your server code via `process.env`.
 
-### How It Works: Static vs. Dynamic Variables
+### Value Types and Parsing
 
-Your `.deploxy.json` can define two types of injected variables:
+By convention, all environment variable values are treated as strings. To handle complex data types like objects or arrays, you must first serialize them into a JSON string. Your server-side code is then responsible for parsing these strings back into their original data types.
 
-1.  **Static Variables**: The value is hardcoded. Useful for non-sensitive, fixed values like a log level.
-2.  **Dynamic Variables**: The value is read from the environment where you run the `npx @deploxy/cli deploy` command. This is the **required method for all secrets**.
+#### Examples
 
-Here’s a typical configuration using both:
-
-```json .deploxy.json
-{
-  "injectedEnv": {
-    "LOG_LEVEL": "info", // Static value
-    "API_SECRET": "${process.env.MY_API_SECRET}" // Dynamic value from your local/CI environment
-  }
-}
-```
-
-<Callout type="warning" title="Security Note">
-When using dynamic variables like `${process.env.VAR_NAME}`, the value is resolved by the Deploxy CLI from the environment where the `deploy` command is run. These values are then securely transmitted and stored in your function's environment, never in your repository.
-</Callout>
-
-### Value Types: Strings Only
-
-It is crucial to remember that all environment variables, and therefore all values within the `injectedEnv` object, must be **strings**. This is a standard convention for environment variables across all platforms.
-
-Providing non-string values like numbers, booleans, or nested objects will result in a deployment error.
-
-<CodeBlock title=".deploxy.json - Correct ✅" language="json">
-```json
+<CodeGroup>
+```json .deploxy.json - Correct ✅
 {
   "injectedEnv": {
     "ENABLE_FEATURE_X": "true",
@@ -102,10 +72,8 @@ Providing non-string values like numbers, booleans, or nested objects will resul
   }
 }
 ```
-</CodeBlock>
 
-<CodeBlock title=".deploxy.json - Incorrect ❌" language="json">
-```json
+```json .deploxy.json - Incorrect ❌
 {
   "injectedEnv": {
     "ENABLE_FEATURE_X": true,
@@ -117,109 +85,127 @@ Providing non-string values like numbers, booleans, or nested objects will resul
   }
 }
 ```
-</CodeBlock>
 
-<Callout type="info" title="Handling Data Types in Your Code">
-In your server-side code, you will need to parse these string values back into their intended types.
-
-```typescript
+```typescript Usage example
+// In your server code, parse the string values:
 const featureXEnabled = process.env.ENABLE_FEATURE_X === 'true';
 const timeout = parseInt(process.env.API_TIMEOUT_MS, 10);
 const config = JSON.parse(process.env.CONFIG_JSON);
 ```
-</Callout>
+</CodeGroup>
 
-### Practical Workflow with `.env` Files
+## Distinguishing Arguments with `stdioArgsIndex`
 
-The most effective way to manage dynamic variables for different environments is with `.env` files.
+This property acts as a delimiter to distinguish between arguments intended for the Deploxy platform and those for your MCP server. This is crucial for preventing conflicts between Deploxy's internal flags (like `--region`) and your server's custom parameters.
+    
+Deploxy processes all command-line arguments up to the `stdioArgsIndex` value. Any arguments appearing after this delimiter are passed directly to your Stdio MCP server's `process.argv` array.
 
-#### 1. Create Environment-Specific `.env` Files
+<Warning title="Argument Order is Critical">
+The `stdioArgsIndex` delimiter and any arguments intended for your MCP server **must** come after all Deploxy-specific arguments.
 
-Create separate `.env` files for each environment. **Crucially, add `.env*` to your `.gitignore` file to prevent committing secrets to version control.**
+For instance, if you place a flag like `--region` after the `stdioArgsIndex` delimiter, it will not be interpreted by Deploxy. Instead, it will be passed directly to your server's `process.argv` array. This is the expected behavior, so always ensure your command-line arguments are ordered correctly.
+</Warning>
 
-**.env.development**
-```
-NODE_ENV=development
-DATABASE_URL=postgres://user:pass@dev-db.example.com/mydb
-STRIPE_API_KEY=sk_test_...
-```
+### Configuration Example
 
-**.env.production**
-```
-NODE_ENV=production
-DATABASE_URL=postgres://user:pass@prod-db.example.com/mydb
-STRIPE_API_KEY=sk_live_...
-```
+You define the delimiter in your `.deploxy.json` file. The default is `"--args"`.
 
-#### 2. Deploy Using a Specific Environment
-
-Use a tool like `dotenv-cli` to load these variables before deploying. This keeps your deployment command clean and your configuration secure.
-
-```bash
-# Deploy using development settings
-npx dotenv -e .env.development -- npx @deploxy/cli deploy
-
-# Deploy using production settings
-npx dotenv -e .env.production -- npx @deploxy/cli deploy
-```
-
-### Accessing Variables in Your Server Code
-
-Inside your MCP server's code, these injected variables are available via `process.env`.
-
-```typescript
-// This code runs securely on the Deploxy server, not on the client.
-import { connectToDatabase } from './database';
-import Stripe from 'stripe';
-
-// Initialize services with securely injected environment variables
-const db = connectToDatabase(process.env.DATABASE_URL);
-const stripe = new Stripe(process.env.STRIPE_API_KEY);
-
-export async function handleToolCall(request) {
-  // Your logic here can now securely access the database and Stripe
+```json .deploxy.json
+{
+  "stdioArgsIndex": "--args"
 }
 ```
 
-## Regional Configuration
+### End-User Usage Examples
 
-While `defaultDeployRegion` sets the primary location, you can deploy to multiple regions for higher availability and lower latency.
+Here is how an end-user's client would pass arguments to your MCP server.
 
-### Multi-Region Deployments
+<CodeGroup>
+```bash NPX
+# When a user runs this command:
+npx -y @your/mcp --region us-east-1 --args user-custom-key user-token
 
-To deploy to multiple regions, you can maintain separate configuration files for each environment or use the CLI's `--region` flag.
-
-**Example using a region-specific config file (`.deploxy.us-west-2.json`):**
-```json
-{
-  "extends": "./.deploxy.json", // Inherits from the base config
-  "defaultDeployRegion": "us-west-2"
-}
+# Deploxy handles --region us-east-1
+# Your server receives ["user-custom-key", "user-token"] in process.argv
 ```
 
-Then deploy using:
-```bash
-npx @deploxy/cli deploy --config .deploxy.us-west-2.json
-```
-
-### Available Regions
-
-Deploxy deploys to a wide range of global regions. For a complete and up-to-date list of all supported regions and their identifiers, please see the [Available Regions](/resources/regions) documentation.
-
-## Advanced Build Options (Future)
-
-While the current version of Deploxy automatically handles most build configurations, future versions will allow for more granular control over the build process directly within `.deploxy.json`.
-
-**Example of potential future configuration:**
-```json
+```json Use case 1
+// Your MCP server receives
+// ["user-custom-key", "user-token"] in process.argv
 {
-  "buildOptions": {
-    "nodeVersion": "20",
-    "installCommand": "pnpm install --frozen-lockfile",
-    "buildCommand": "pnpm build",
-    "outputDirectory": "build"
+  "mcpServers": {
+    "your-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@your/mcp",
+        "--region",
+        "us-east-1",
+        "--args",
+        "user-custom-key",
+        "user-token"
+      ]
+    }
   }
 }
 ```
 
-For now, ensure your `package.json` `scripts` and `tsconfig.json` are correctly configured, as the CLI uses them as the source of truth for the build process.
+```json Use case 2
+// Your MCP server receives
+// [] in process.argv
+{
+  "mcpServers": {
+    "your-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@your/mcp",
+        "--region",
+        "us-east-1"
+      ]
+    }
+  }
+}
+```
+</CodeGroup>
+
+## Regional Configuration
+
+The `defaultDeployRegion` sets the primary deployment location for your server. For end-users on the Free Plan, all operations are routed to this region unless they specify a different one using the `--region` flag. This routing behavior does not apply to Pay-As-You-Go plans.
+
+### Available Regions
+
+Deploxy supports deployment to a wide range of global regions. For a complete, up-to-date list of all supported regions and their identifiers, please see the [Available Regions](/resources/regions) documentation.
+
+## Package Manager Configuration
+
+You can specify which package manager Deploxy should use to install your project's dependencies on the server. The following examples show how to configure `npm`, `pnpm`, and `yarn`. If this property is not set, `npm` is used by default.
+
+<CodeGroup>
+```json .deploxy.json (npm)
+{
+  "packageManager": {
+    "manager": "npm",
+    "installCommand": "npm install --production"
+  }
+}
+```
+
+```json .deploxy.json (pnpm)
+{
+  "packageManager": {
+    "manager": "pnpm",
+    "installCommand": "pnpm install --prod"
+  }
+}
+```
+
+```json .deploxy.json (yarn)
+{
+  "packageManager": {
+    "manager": "yarn",
+    "installCommand": "yarn install --production"
+  }
+}
+```
+</CodeGroup>
