@@ -1,0 +1,92 @@
+---
+sidebarTitle: 'CLI Reference'
+title: 'CLI Reference'
+description: 'A complete reference for all Deploxy CLI commands, including init and deploy, with all available options and configuration details.'
+sequence: 7
+keywords: ['cli', 'command line', 'commands', 'reference', 'init', 'deploy', 'deploxy.json']
+icon: 'terminal'
+---
+
+The Deploxy CLI (`@deploxy/cli`) is the primary tool for managing and deploying your MCP server projects. It is designed to be a direct replacement for the `npm publish` command, integrating seamlessly into your existing workflow.
+
+## Installation
+
+You can run the CLI without installation using `npx`, or you can install it globally.
+
+<CodeGroup>
+```bash NPX (Recommended)
+# Run commands without installing
+npx @deploxy/cli <command>
+```
+```bash Global Install
+# Install globally for frequent use
+npm install -g @deploxy/cli
+deploxy <command>
+```
+</CodeGroup>
+
+## Core Commands
+
+### `init`
+
+Initializes a new Deploxy project in the specified directory by creating a `.deploxy.json` configuration file and adding it to your `.gitignore`.
+
+```bash
+npx @deploxy/cli init [path]
+```
+
+<ParamField path="path" type="string">
+Optional path to the directory where the project should be initialized. Defaults to the current directory.
+</ParamField>
+
+This command will not overwrite an existing `.deploxy.json` file.
+
+### `deploy`
+
+The central command for deploying your project. It validates your configuration, checks NPM for version and permission validity, collects your project files, and uploads them to the Deploxy platform for deployment.
+
+<Info>
+The `deploy` command does **not** build your project. You must run your build script (e.g., `npm run build`) **before** deploying to ensure your compiled code is included.
+</Info>
+
+```bash
+npx @deploxy/cli deploy [path]
+```
+
+<ParamField path="path" type="string">
+Optional path to the project directory you want to deploy. Defaults to the current directory.
+</ParamField>
+
+The `deploy` command performs the following steps:
+1.  **Configuration Check**: Reads and validates your `.deploxy.json` and `package.json`.
+2.  **NPM Validation**: Verifies that your package version is higher than the one on the NPM registry and that you have permission to publish.
+3.  **File Collection**: Gathers all files and directories specified in the `files` array of your `package.json`.
+4.  **Upload**: Securely uploads a compressed archive of your project to the Deploxy platform.
+5.  **Deployment**: Deploxy's backend takes over, installs production dependencies, deploys your serverless functions globally, and publishes the proxy package to NPM.
+
+## Global Options
+
+These options can be used with any command:
+
+-   `--help`: Show help information for a command.
+-   `--version`: Display the installed CLI version.
+
+## Configuration Files
+
+### `.deploxy.json`
+
+This file is the control center for your deployment. See the [Configuration Guide](/guides/configuration) for a more detailed explanation of each property.
+
+### `.npmrc`
+
+To publish the proxy package to NPM, the CLI needs your NPM authentication token. Create a `.npmrc` file in your project root.
+
+<Warning>
+Using an environment variable for your token is a critical security practice.
+</Warning>
+
+```bash .npmrc
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+```
+
+You must then set the `NPM_TOKEN` environment variable in the shell where you run the `deploy` command.
