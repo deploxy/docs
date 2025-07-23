@@ -1,108 +1,103 @@
 ---
 title: 'Troubleshooting Guide'
 sidebarTitle: 'Troubleshooting'
-description: 'Find solutions to common issues and problems encountered during deployment, build, and runtime of your MCP server.'
+description: 'Find solutions to common issues and problems encountered during deployment and runtime of your MCP server.'
 sequence: 10
 keywords: ['troubleshooting', 'error', 'debug', 'help', 'issue', 'problem', 'fix']
 icon: 'wrench'
 ---
 
-# Troubleshooting Guide
-
 This guide covers common issues you might encounter when using Deploxy and provides step-by-step solutions.
+
+## Pre-Deployment Checklist
+
+Before running `npx @deploxy/cli deploy`, ensure your project is ready for publishing. Deploxy deploys your project as-is, so it must be fully built and configured correctly.
+
+1.  **Project is Built**: You must run your build command (e.g., `npm run build` or `tsc`) to compile your code **before** deploying. Deploxy does **not** run your build script. It only installs production dependencies (e.g., `npm install --production`) on the server.
+2.  **`package.json` is Correct**:
+    - The `name` and `version` are set for publishing to NPM.
+    - The `main` field points to the entry file of your **built** code (e.g., `dist/index.js`).
+    - The `files` array includes your build output directory (e.g., `["dist"]`). This ensures your compiled code is included in the deployment.
+3.  **Dependencies are Production-Ready**: Your `dependencies` should contain only what's needed to run your server in production. Build tools like `typescript`, `eslint`, and bundlers should be in `devDependencies`.
+
+<Tip>
+Think of `npx @deploxy/cli deploy` as a direct replacement for `npm publish`. Just as you would build your project before publishing to NPM, you must build your project before deploying with Deploxy.
+</Tip>
 
 ## Deployment Issues
 
+These issues occur when running the `npx @deploxy/cli deploy` command.
+
 ### Deployment Fails with "Unauthorized"
 
-**Symptom:** The `npx @deploxy/cli deploy` command fails with a `401 Unauthorized` error.
+**Symptom:** The deploy command fails with a `401 Unauthorized` error.
 
 **Solution:**
-
-1.  **Verify Your Token:** Ensure the `authToken` in your `.deploxy.json` is correct and has not expired.
-2.  **Regenerate Token:** Go to the [Deploxy Dashboard](https://deploxy.com/account/settings/tokens), generate a new token, and update your configuration file.
+1.  **Verify `authToken`:** Ensure the `authToken` in your `.deploxy.json` is correct and has not expired.
+2.  **Regenerate Token:** Go to the [Tokens page](https://deploxy.com/account/settings/tokens) on your dashboard, generate a new token, and update your configuration file.
 3.  **Check for Typos:** Make sure there are no extra spaces or characters in the token string.
 
-### Build Process Fails
+### Deployment Fails Due to Missing Files or Entry Point Error
 
-**Symptom:** The deployment fails during the "Building project..." step.
+**Symptom:** The deployment fails, and the logs on the Deploxy dashboard indicate that the entry point specified in `package.json` could not be found, or other necessary files are missing.
 
 **Solution:**
+This almost always means your project was not built before deployment, or your `package.json` is not configured to include the built files.
 
-1.  **Run Build Locally:** The most common cause is a build error in your project. Run your build command locally to see the detailed error message. For example: `npm run build`.
-2.  **Check `tsconfig.json`:** Ensure your `tsconfig.json` has a valid `outDir` specified and that the `include` array correctly points to your source files.
-3.  **Check Dependencies:** By default, the Deploxy build environment installs dependencies using a production flag (e.g., `npm install --production`), meaning `devDependencies` are not installed. If your build script requires a package from this section (like `typescript`), it will fail. Ensure any packages needed for the build are listed in `dependencies`.
+1.  **Build Your Project:** Run your project's build script locally (e.g., `npm run build`).
+2.  **Check `package.json` `main` field:** The `main` field must point to the main file of your compiled output, not your source TypeScript or JavaScript file.
+    ```json package.json
+    {
+      "main": "dist/index.js" 
+    }
+    ```
+3.  **Check `package.json` `files` field:** The `files` array tells Deploxy which files and folders to include in the deployment. It **must** include your build output directory.
+    ```json package.json
+    {
+      "files": ["dist"]
+    }
+    ```
 
 ### Deployment Package Too Large
 
-**Symptom:** The deployment fails during the final packaging or upload step, sometimes with a message related to size limits.
+**Symptom:** The deployment fails with a message related to the package size limit.
 
 **Solution:**
+The total unzipped size of your project, including `node_modules`, must be **under 250MB**.
 
-Serverless platforms have a limit on the size of the deployment package. The total unzipped size of your project, including `node_modules`, must be **under 250MB**.
-
-1.  **Analyze Dependencies:** Use a tool like `npm-why` or `yarn why` to understand why a specific package is included. You can also use `du -sh node_modules/* | sort -rh` (on macOS/Linux) to list the largest directories.
-2.  **Check `devDependencies`:** Ensure that build-time tools (like `typescript`, `@types/*`, `eslint`) are in `devDependencies` and not `dependencies`. The build process prunes `devDependencies` before packaging your server.
-3.  **Use a Production Install Command:** By default, Deploxy runs `npm install`. You can override this to ensure only production dependencies are installed. In your `.deploxy.json`, specify the `installCommand`.
-    ```json .deploxy.json
-    {
-      "installCommand": "npm install --production"
-    }
-    ```
-    For other package managers, you can use equivalent commands like `yarn install --production` or `pnpm install --prod`.
-4.  **Remove Unused Packages:** Carefully review your `dependencies` in `package.json` and remove any that are not essential for your server to run in production.
+1.  **Check `devDependencies`:** Ensure that build-time tools (like `typescript`, `@types/*`, `eslint`, bundlers) are in `devDependencies` and not `dependencies`. Only `dependencies` are installed on the server.
+2.  **Analyze Dependencies:** Use a tool like `npm-why` or `yarn why` to find and remove unnecessary packages from your `dependencies`.
+3.  **Prune `devDependencies` locally:** Before deploying, you can simulate a production install to see the true size of your `node_modules`. Create a temporary directory, copy your `package.json` and `package-lock.json` into it, and run `npm install --production`.
 
 ### NPM Publishing Fails
 
-**Symptom:** The deployment succeeds until the "Publishing to NPM..." step, which then fails.
+**Symptom:** The deployment process succeeds until the "Publishing to NPM..." step.
 
 **Solution:**
-
-1.  **Check NPM Authentication:** Ensure your `.npmrc` file is present in the project root and contains a valid NPM token with publish permissions for your package scope.
-2.  **Check Package Version:** NPM requires that you publish a new version every time. Before deploying, increment the `version` number in your `package.json`. The CLI will also validate this for you.
-3.  **Check Package Name:** Ensure the `name` in your `package.json` is available on NPM and that you have permission to publish to that scope (e.g., `@your-org/my-package`).
+1.  **Check NPM Authentication:** Ensure your `.npmrc` file is present in the project root and contains a valid NPM token with publish permissions. The `NPM_TOKEN` environment variable must be available in your shell.
+2.  **Check Package Version:** NPM requires a unique version for every publish. Before deploying, you must increment the `version` in your `package.json`.
+3.  **Check Package Name:** Ensure the `name` in your `package.json` is available on NPM and that you have permission to publish to that scope (e.g., `@your-username/my-package`).
 
 ## Runtime Issues
 
-### MCP Server Not Responding or Timing Out
+These issues occur after your MCP server has been successfully deployed.
 
-**Symptom:** Your deployed MCP server is not responding to requests, or requests are timing out.
+### Server Not Responding or Timing Out
 
-**Solution:**
-
-1.  **Check Runtime Logs:** This is the most important step. The easiest way to see what's happening inside your server is to check the logs in real-time from the Deploxy Dashboard.
-    1.  Go to your project's page on the [Deploxy Dashboard](https://deploxy.com/dashboard).
-    2.  Select your latest deployment and navigate to the **Logs** tab.
-    3.  Look for any startup errors or exceptions that occur when a request comes in.
-
-2.  **Check Environment Variables:** Ensure all required environment variables are correctly set in the `injectedEnv` section of your `.deploxy.json`. A missing database URL or API key is a common cause of startup failure.
-3.  **Increase Timeout:** If your tool performs a long-running task, it might be exceeding the default serverless function timeout. You can increase this in your project settings (feature coming soon).
-
-### "Invalid or Missing API Key"
-
-**Symptom:** Users report getting an "Invalid API Key" error, even when they provide one.
+**Symptom:** Your deployed MCP server does not respond to requests, or requests time out.
 
 **Solution:**
-
-1.  **Verify Your Server Logic:** Double-check the authentication logic in your MCP server. Is it correctly retrieving the API key from the `request.params.arguments`?
-2.  **Check Database Connection:** If you validate keys against a database, ensure your server can connect to it. Check the logs for any database connection errors.
-3.  **Confirm User Input:** Ensure the user is passing the API key correctly in their MCP client configuration.
-
-## Configuration Issues
+1.  **Check Runtime Logs:** This is the most critical step. Go to your project's **Logs** tab on the Deploxy Dashboard to see real-time logs from your server. Look for any startup errors or exceptions.
+2.  **Verify Environment Variables:** A missing or incorrect `injectedEnv` variable is a common cause of runtime failure. Go to your project's **Settings** tab to verify the environment variables for each region. Remember that any changes require a new deployment to take effect.
+3.  **Run a Health Check:** Use the health check feature on the **Settings** tab to confirm your serverless function is live.
 
 ### Environment Variables are `undefined`
 
-**Symptom:** Your deployed server crashes because `process.env.MY_VARIABLE` is `undefined`.
+**Symptom:** Your server crashes because `process.env.MY_VARIABLE` is `undefined`.
 
 **Solution:**
-
-1.  **Check `.deploxy.json`:** Verify that the variable is defined in the `injectedEnv` section.
-2.  **Check for Dynamic Variables:** If you are using dynamic variables (e.g., `"${process.env.MY_LOCAL_VAR}"`), ensure that the environment variable `MY_LOCAL_VAR` is set in the environment where you are running the `npx @deploxy/cli deploy` command. It will not be available if it's only in a `.env` file that isn't loaded by your shell.
-
-<Callout type="info" title="Using .env files">
-To load variables from a `.env` file before deploying, you can use a tool like `dotenv-cli`:
-`npx dotenv -e .env.production -- npx @deploxy/cli deploy`
-</Callout>
+1.  **Check `.deploxy.json`:** Verify that the variable is defined in the `injectedEnv` section and that its value is a **string**.
+2.  **Redeploy:** Your server only receives new `injectedEnv` values after you run `npx @deploxy/cli deploy` again.
 
 ## Getting Help
 

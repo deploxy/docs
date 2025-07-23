@@ -30,7 +30,7 @@
       },
       {
         "group": "Guides",
-        "pages": ["guides/configuration", "guides/troubleshooting", "guides/monitoring", "guides/authentication"]
+        "pages": ["guides/configuration", "guides/troubleshooting", "guides/monitoring"]
       },
       {
         "group": "Resources",

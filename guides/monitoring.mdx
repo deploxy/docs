@@ -1,121 +1,61 @@
 ---
 title: 'Monitoring and Logging'
-description: 'Learn how to monitor your deployments, access runtime and build logs, and implement health checks for your MCP server.'
+description: 'Learn how to monitor your MCP operations, deployment and runtime logs for your Stdio MCP server.'
 sequence: 6
 keywords: ['monitoring', 'logging', 'logs', 'metrics', 'health check', 'debugging', 'dashboard']
 icon: 'search'
 ---
 
-# Monitoring & Logging
+## MCP Operations Usage
 
-Effective monitoring and logging are essential for maintaining a healthy service. Deploxy provides tools to observe your MCP server's behavior, diagnose issues, and understand its performance.
+Deploxy provides a detailed breakdown of your MCP (Model Context Protocol) operations usage, allowing you to monitor your consumption and manage costs effectively. You can view your usage statistics on your project's dashboard.
 
-## Accessing Deployment Logs
+### Usage Overview
 
-Deploxy automatically captures the output from your serverless functions and makes it available through the dashboard and the CLI.
+The **Package Usage Overview** card gives you a high-level summary of your current usage against your plan's limits.
 
-### Using the Deploxy Dashboard
+**Total MCP Operations**: This shows your total consumption of all MCP operations (e.g., `listTools`, `callTool`) against your monthly limit.
 
-The easiest way to view logs is through the Deploxy web interface:
+### Operations Breakdown
 
-1.  Navigate to your project's dashboard.
-2.  Select the specific deployment you want to inspect.
-3.  Click on the **"Logs"** tab.
+For a more granular view, the **MCP Operations Breakdown** card shows your usage for each type of operation, categorized into "List Operations" and "Call Operations". This helps you understand which operations are contributing most to your usage.
 
-The dashboard provides a real-time log stream with features for filtering by log level and searching for specific terms.
+Each item in the breakdown includes a progress bar and shows the current usage versus the limit for that specific operation.
 
-## Structured Logging
+<Info>
+For more details on how MCP Operations are calculated and how they relate to billing, please refer to our [Pricing documentation](/resources/pricing).
+</Info>
 
-For the best logging experience, we recommend using structured JSON logging in your MCP server. This allows Deploxy to parse your logs correctly and provide rich filtering capabilities.
+## Deployment Logs
 
-<CodeBlock title="src/index.ts - Structured Logging Example" language="typescript">
-```typescript
-// A simple structured logger example
-function log(level, message, context = {}) {
-  console.log(JSON.stringify({
-    timestamp: new Date().toISOString(),
-    level: level,
-    message: message,
-    ...context
-  }));
-}
+You can monitor the build and deployment process for each of your deployments in real-time. Deployment logs are essential for debugging build failures and understanding the deployment lifecycle.
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const toolName = request.params.name;
-  const requestId = request.id; // Assuming request has an ID
+You can access the logs for a specific deployment by navigating to the **Deployments** tab of your project and selecting a deployment.
 
-  log('info', 'Tool call received', { toolName, requestId });
+## Runtime Logs
 
-  try {
-    const result = await processTool(request.params);
-    log('info', 'Tool call successful', { toolName, requestId });
-    return result;
-  } catch (error) {
-    log('error', 'Tool call failed', { 
-      toolName, 
-      requestId, 
-      errorMessage: error.message 
-    });
-    throw error;
-  }
-});
-```
-</CodeBlock>
+Runtime logs provide insights into your live serverless functions as they are being executed by end-users. These logs are streamed directly from AWS CloudWatch and are invaluable for debugging runtime errors and monitoring the behavior of your MCP server.
 
-Deploxy's log viewer will automatically parse and display fields like `level`, `toolName`, and `requestId` from your JSON logs.
-
-## Build Logs vs. Runtime Logs
-
-Deploxy separates logs into two categories:
-
-1.  **Build Logs**: Output generated during the deployment process (`npm install`, `tsc`, etc.). These are useful for debugging deployment failures. You can find these on the specific deployment's details page.
-2.  **Runtime Logs**: Output from your serverless function as it handles requests. These are the logs you'll see in the main "Logs" tab and access via the `deploxy logs` command.
-
-## Monitoring Metrics
-
-The Deploxy dashboard provides key metrics for your deployments, including:
-
--   **Invocation Count**: How many times your serverless function has been executed.
--   **Error Rate**: The percentage of invocations that resulted in an error.
--   **Average Duration**: The average execution time for your function.
-
-These metrics help you understand your application's performance and identify potential bottlenecks or an increase in errors.
-
-<Callout type="info" title="Future: Advanced Metrics">
-We are working on providing more advanced metrics, including CPU and memory usage, as well as custom metrics that you can emit from your application code.
-</Callout>
+You can access the runtime logs from the **Logs** tab of your project dashboard.
 
 ## Health Checks
 
-While Deploxy monitors the health of the underlying serverless infrastructure, it's a good practice to implement a health check endpoint within your MCP server.
+Deploxy provides a simple way to verify that your serverless function is deployed and running correctly.
 
-<CodeBlock title="src/index.ts - Health Check Tool" language="typescript">
-```typescript
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [
-    // ... your other tools
-    {
-      name: 'health-check',
-      description: 'Performs a health check of the server',
-      inputSchema: { type: 'object' },
-    },
-  ],
-}));
+### Default Health Check Endpoint
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  if (request.params.name === 'health-check') {
-    // Optional: Check database connection or other dependencies
-    // await db.healthCheck(); 
-    return { 
-      content: [{ 
-        type: 'text', 
-        text: JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }) 
-      }] 
-    };
-  }
-  // ... handle other tools
-});
-```
-</CodeBlock>
+Every serverless function deployed via Deploxy automatically has a `/health` endpoint. You can manually check the status of your deployment by sending a GET request to this endpoint.
 
-You can then set up an external monitoring service to periodically call this `health-check` tool to ensure your application logic and its dependencies are functioning correctly.
+For example:
+`GET https://<your-function-url>/health`
+
+A successful response with a status of `200 OK` confirms that your function is live and responsive.
+
+### Using the Dashboard
+
+You can also trigger a health check for each region directly from the Deploxy dashboard:
+
+1.  From the main dashboard, navigate to the page for your desired package.
+2.  Click on the **Settings** tab.
+3.  In the **Serverless Function** section, select the **Individual Region Settings** tab.
+4.  This will display a list of all the regions your function is deployed to.
