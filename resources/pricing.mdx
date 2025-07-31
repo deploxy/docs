@@ -10,22 +10,26 @@ icon: 'dollar-sign'
 
 The core of our pricing is the **MCP Operation**. This is the unit we use to measure the usage of your deployed servers.
 
-An MCP Operation can be one of the following:
+An MCP Operation includes only **Call Operations**:
 
--   **List Operation:** A request to list available resources, prompts, or tools.
--   **Call Operation:** A request to execute a resource, prompt, or tool.
+-   **Call Operation:** A request to execute a tool, resource, or prompt.
+
+<Note>
+**List Operations are Free:** Requests to list available resources, prompts, or tools are not counted as MCP Operations and do not consume your usage quota.
+</Note>
 
 ### Memory-Based Calculation
 
 The number of MCP Operations consumed by a request depends on the memory size configured for your serverless function. The formula is:
 
-**`Consumed MCP Operations = Number of Requests * (Memory Size in MB / 256 MB)`**
+**`Consumed MCP Operations = Number of Call Requests * (Memory Size in MB / 256 MB)`**
 
 For example:
--   A request to a function with **256MB** of memory consumes **1** MCP Operation.
--   A request to a function with **512MB** of memory consumes **2** MCP Operations.
+-   A **call operation** to a function with **256MB** of memory consumes **1** MCP Operation.
+-   A **call operation** to a function with **512MB** of memory consumes **2** MCP Operations.
+-   **List operations** (listing tools, resources, or prompts) consume **0** MCP Operations regardless of memory size.
 
-This model ensures you only pay for the resources you actually use.
+This model ensures you only pay for the computational resources you actually use, while keeping discovery operations free.
 
 ## Plan Comparison
 
@@ -47,7 +51,7 @@ The Free plan is perfect for personal projects, learning, and experimentation.
 
 **Key Features:**
 
--   **Free 5,000 MCP Operations per Month:** A generous allowance for development and small-scale applications.
+-   **Free 5,000 MCP Operations per Month:** A generous allowance for development and small-scale applications. Remember, only call operations count - list operations are always free.
 -   **1 Project:** You can manage one project under the Free plan.
 -   **Manual Global Routing:** Your server is deployed globally. For the best performance, your users can manually specify the region closest to them to minimize latency. If no region is specified, requests go to your `defaultDeployRegion`.
     ```bash
@@ -61,7 +65,7 @@ The Pay as you go plan is built for professional developers and applications tha
 
 **Key Features:**
 
--   **Free 10,000 MCP Operations per Month:** A larger free allowance for your applications.
+-   **Free 10,000 MCP Operations per Month:** A larger free allowance for your applications. Only call operations are counted - list operations remain free.
 -   **Unlimited Projects:** Create and manage as many projects as you need.
 -   **Pay-as-you-go for Extra Usage:** Never worry about hitting a hard limit. Once you've used your free operations, you're billed at **$1 per 1,000 extra operations**.
 -   **Set a Budget Limit:** To avoid unexpected costs, you can set a monthly spending limit for extra usage. You can even set it to $0 to cap usage at the free allowance.
