@@ -1,61 +1,91 @@
-# Mintlify Starter Kit
+# Deploxy Documentation
 
-Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
+**The serverless proxy platform for Stdio MCP servers**
 
-- Guide pages
-- Navigation
-- Customizations
-- API Reference pages
-- Use of popular components
+Deploxy is a comprehensive deployment platform that allows you to deploy Stdio MCP (Model Context Protocol) servers to serverless infrastructure while keeping your source code private and secure. This repository contains the official documentation for the Deploxy platform.
 
-### Development
+## 🚀 What is Deploxy?
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview the documentation changes locally. To install, use the following command
+Deploxy solves the fundamental challenge of monetizing and securing MCP servers by providing:
 
-```
+- **Private Server Deployment**: Your MCP server code runs securely in our cloud environment, never exposed to end-users
+- **Lightweight NPM Proxy**: Users install minimal proxy packages that securely connect to your hosted logic
+- **Global Serverless Infrastructure**: Automatic scaling and distribution across all supported regions
+- **Secure Environment Management**: Safe handling of API keys, database connections, and sensitive data
+- **CLI-Driven Workflow**: Simple deployment process integrated into your development workflow
+
+## 📚 Documentation Structure
+
+This documentation is built with [Mintlify](https://mintlify.com) and organized into three main sections:
+
+### Getting Started
+
+- **Introduction** (`index.mdx`) - Platform overview and initial setup
+- **Quick Start - Clone** (`getting-started/quickstart-clone.mdx`) - Deploy a sample server in 5 minutes
+- **Quick Start - Existing** (`getting-started/quickstart-existing.mdx`) - Integrate existing projects
+- **Core Concepts** (`getting-started/core-concepts.mdx`) - Understanding Deploxy architecture
+
+### Guides
+
+- **Configuration** (`guides/configuration.mdx`) - Detailed configuration options
+- **Troubleshooting** (`guides/troubleshooting.mdx`) - Common issues and solutions
+- **Monitoring** (`guides/monitoring.mdx`) - Monitoring your deployed servers
+
+### Resources
+
+- **CLI Reference** (`resources/cli-reference.mdx`) - Complete CLI command documentation
+- **Pricing** (`resources/pricing.mdx`) - Pricing plans and MCP operation billing
+- **Regions** (`resources/regions.mdx`) - Available deployment regions
+
+## 🛠 Development
+
+### Prerequisites
+
+- Node.js 20 or higher
+- Mintlify CLI
+
+### Local Development
+
+```bash
+# Install Mintlify CLI globally
 npm i -g mint
-```
 
-Run the following command at the root of your documentation (where docs.json is)
-
-```
+# Start development server (run from project root where docs.json is located)
 mint dev
+
+# Update CLI to latest version
+mint update
 ```
 
-### Publishing Changes
+The development server should be run from the directory containing `docs.json` (the current directory).
 
-Install our Github App to auto propagate changes from your repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard. 
+### Documentation Standards
 
-#### Troubleshooting
+This documentation follows strict technical writing guidelines defined in `doc-rule.mdc`:
 
-- If the dev environment isn't running - Run `mint update` to ensure you have the most recent version of the CLI.
-- Page loads as a 404 - Make sure you are running in a folder with `docs.json`
+- **User-centered approach** with clear, actionable procedures
+- **Mintlify components** for enhanced presentation (Steps, CodeGroup, Warning, Check, etc.)
+- **Consistent YAML frontmatter** structure with title, description, sequence, keywords, and icon
+- **Complete and runnable** code examples
+- **Progressive disclosure** of information
 
----
+### File Structure
 
-## Understanding the `.deploxy.json` file
+```
+docs/
+├── docs.json              # Mintlify configuration
+├── doc-rule.mdc          # Writing standards and component guidelines
+├── index.mdx             # Homepage/introduction
+├── getting-started/      # Onboarding content
+├── guides/               # In-depth operational guides
+├── resources/            # Reference materials
+├── images/               # Screenshots and diagrams
+└── logo/                 # Brand assets
+```
 
-This file holds the configuration for your Deploxy deployment. Here's a breakdown of its properties:
+## 🔗 Related Links
 
--   `authToken`: This is the token required to authenticate and deploy your package to Deploxy.
-
--   `defaultDeployRegion`: This is the default AWS region where your MCP server will run if the end-user does not specify a particular region. When you deploy a package with Deploxy, your MCP server logic is deployed to serverless environments in regions all over the world. To give your end-users the fastest experience, they can specify a region using the `--region` flag when they run your package:
-    ```bash
-    npx -y your-pkg --region us-east-1
-    ```
-    If the `--region` parameter is omitted, the `defaultDeployRegion` you set in this file will be used to handle the user's request.
-    > With the Deploxy Pro plan, the `--region` parameter is not needed. Requests are automatically routed to the nearest region for the end-user.
-
--   `stdioArgsIndex`: This option specifies the arguments that are passed directly to your MCP server. For example, when an end-user runs the following command:
-    ```bash
-    npx -y your-pkg --args user-api-key user-token
-    ```
-    Your server can access `user-api-key` and `user-token` from `process.argv`.
-
--   `injectedEnv`: This is an object of environment variables that are accessible only within your MCP server. You can access them in your code using `process.env.DATABASE_URL`, for example.
-    
-    Wondering how end-users can't see these? Don't worry. The end-user never sees or has access to your actual MCP server code.
-    
-    To understand how this works, you need to follow this Quick Start and deploy your package. In short, the code that the end-user downloads and runs via `npx` is a lightweight **proxy client**. This proxy client takes user requests (like a ToolCall) and streams them to your actual MCP server, which is running securely in the serverless cloud. This architecture allows you to focus on your core business logic without worrying about exposing sensitive information. You'll understand immediately once you inspect your published package on NPM after deployment.
-
--   `mcpPath` and `packageType`: You generally don't need to change these.
+- **Deploxy Platform**: https://www.deploxy.com
+- **Dashboard**: https://www.deploxy.com/dashboard
+- **GitHub**: https://github.com/deploxy
+- **Quick Start Repository**: https://github.com/deploxy/quick-start
