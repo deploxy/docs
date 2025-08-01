@@ -16,56 +16,57 @@ Deploxy solves the fundamental challenge of monetizing and securing MCP servers 
 
 ## 📚 Documentation Structure
 
-This documentation is built with [Mintlify](https://mintlify.com) and organized into three main sections:
+This documentation is organized into three main sections:
 
 ### Getting Started
 
-- **Introduction** (`index.mdx`) - Platform overview and initial setup
-- **Quick Start - Clone** (`getting-started/quickstart-clone.mdx`) - Deploy a sample server in 5 minutes
-- **Quick Start - Existing** (`getting-started/quickstart-existing.mdx`) - Integrate existing projects
-- **Core Concepts** (`getting-started/core-concepts.mdx`) - Understanding Deploxy architecture
+- **Introduction** - Platform overview and initial setup
+- **Quick Start - Clone** - Deploy a sample server in 5 minutes
+- **Quick Start - Existing** - Integrate existing projects
+- **Core Concepts** - Understanding Deploxy architecture
 
 ### Guides
 
-- **Configuration** (`guides/configuration.mdx`) - Detailed configuration options
-- **Troubleshooting** (`guides/troubleshooting.mdx`) - Common issues and solutions
-- **Monitoring** (`guides/monitoring.mdx`) - Monitoring your deployed servers
+- **Configuration** - Detailed configuration options
+- **Troubleshooting** - Common issues and solutions
+- **Monitoring** - Monitoring your deployed servers
 
 ### Resources
 
-- **CLI Reference** (`resources/cli-reference.mdx`) - Complete CLI command documentation
-- **Pricing** (`resources/pricing.mdx`) - Pricing plans and MCP operation billing
-- **Regions** (`resources/regions.mdx`) - Available deployment regions
+- **CLI Reference** - Complete CLI command documentation
+- **Pricing** - Pricing plans and MCP operation billing
+- **Regions** - Available deployment regions
 
 ## 🛠 Development
 
 ### Prerequisites
 
 - Node.js 20 or higher
-- Mintlify CLI
+- Deploxy CLI
 
-### Local Development
+### Getting Started with Deploxy
 
 ```bash
-# Install Mintlify CLI globally
-npm i -g mint
+# Install Deploxy CLI globally
+npm install -g @deploxy/cli
 
-# Start development server (run from project root where docs.json is located)
-mint dev
+# Initialize a new project
+deploxy init
 
-# Update CLI to latest version
-mint update
+# Deploy to serverless infrastructure
+deploxy deploy
 ```
 
-The development server should be run from the directory containing `docs.json` (the current directory).
+### Configuration
+
+Deploxy uses a `.deploxy.json` file for configuration. This file contains deployment settings, authentication tokens, and environment variables for your MCP server.
 
 ### Documentation Standards
 
-This documentation follows strict technical writing guidelines defined in `doc-rule.mdc`:
+This documentation follows strict technical writing guidelines:
 
 - **User-centered approach** with clear, actionable procedures
-- **Mintlify components** for enhanced presentation (Steps, CodeGroup, Warning, Check, etc.)
-- **Consistent YAML frontmatter** structure with title, description, sequence, keywords, and icon
+- **Consistent structure** with title, description, and navigation elements
 - **Complete and runnable** code examples
 - **Progressive disclosure** of information
 
@@ -73,8 +74,8 @@ This documentation follows strict technical writing guidelines defined in `doc-r
 
 ```
 docs/
-├── docs.json              # Mintlify configuration
-├── doc-rule.mdc          # Writing standards and component guidelines
+├── docs.json              # Site configuration
+├── doc-rule.mdc          # Writing standards and guidelines
 ├── index.mdx             # Homepage/introduction
 ├── getting-started/      # Onboarding content
 ├── guides/               # In-depth operational guides
