@@ -62,5 +62,11 @@
     "404": {
       "redirect": false
     }
+  },
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_3ZPvW7Igq0NEYEEIy177lF3elBA2Igk0Em7IakWLOTp",
+      "apiHost": "https://us.i.posthog.com"
+    }
   }
 }
